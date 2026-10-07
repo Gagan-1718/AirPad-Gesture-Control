@@ -1,14 +1,23 @@
-"""Mouse mode: move the cursor with your hand.
+"""Mouse mode: move the cursor with your hand, pinch to click.
 
-The cursor follows the index-finger knuckle (landmark 5), not the fingertip,
-so it stays steady while the fingers move.
+- Cursor follows the index-finger knuckle (landmark 5), not the fingertip,
+  so the cursor does not jump when you pinch.
+- Thumb + index pinch = left button down; open = button up (so hold = drag).
+- Three fingers: cursor freezes so you can hold still to switch mode.
 """
+import math
+
 import pyautogui
 
 import config
+from gestures import hand_size
 from smoothing import OneEuroFilter
 
-INDEX_MCP = 5
+THUMB_TIP, INDEX_MCP, INDEX_TIP = 4, 5, 8
+
+
+def _dist(a, b):
+    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
 class MouseController:
@@ -17,20 +26,32 @@ class MouseController:
         self._screen_w, self._screen_h = pyautogui.size()
         self._fx = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
         self._fy = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
+        self._button_down = False
+        self._pinch_frames = 0
         self._last_pos = None
 
     def release(self):
-        """Forget the hand (hand lost, mode change, quit)."""
+        """Let go of everything (hand lost, mode change, quit). Never leaves a stuck button."""
+        if self._button_down:
+            self._out.mouse_up()
+            self._button_down = False
+        self._pinch_frames = 0
         self._fx.reset()
         self._fy.reset()
         self._last_pos = None
 
     def update(self, now, hand, gesture, fingers):
         """Feed one frame. gesture: stable gesture or None. Returns an event label or None."""
-        if gesture == "three":
+        pts = hand.points
+        size = hand_size(hand) or 1e-6
+        pinch = _dist(pts[THUMB_TIP], pts[INDEX_TIP]) / size
+
+        if not self._button_down and gesture == "three":
+            self._pinch_frames = 0
             return None         # hold still so the mode switch can complete
+
         self._move(now, hand)
-        return None
+        return self._buttons(pinch)
 
     def _move(self, now, hand):
         nx, ny = hand.norm(INDEX_MCP)
@@ -42,3 +63,21 @@ class MouseController:
         if (x, y) != self._last_pos:
             self._out.move(x, y)
             self._last_pos = (x, y)
+
+    def _buttons(self, pinch):
+        if self._button_down:
+            if pinch > config.PINCH_OFF:
+                self._out.mouse_up()
+                self._button_down = False
+            return None
+
+        if pinch < config.PINCH_ON:
+            self._pinch_frames += 1
+            if self._pinch_frames >= config.PINCH_FRAMES:
+                self._pinch_frames = 0
+                self._button_down = True
+                self._out.mouse_down()
+                return "Click"
+        else:
+            self._pinch_frames = 0
+        return None

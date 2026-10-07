@@ -31,6 +31,12 @@ class Output:
     def move(self, x, y):
         pyautogui.moveTo(x, y)
 
+    def mouse_down(self):
+        pyautogui.mouseDown()
+
+    def mouse_up(self):
+        pyautogui.mouseUp()
+
 
 class DryRunOutput(Output):
     """Prints actions instead of sending them. The cursor is not moved."""
@@ -43,6 +49,12 @@ class DryRunOutput(Output):
 
     def move(self, x, y):
         pass
+
+    def mouse_down(self):
+        print("[dry-run] mouse down")
+
+    def mouse_up(self):
+        print("[dry-run] mouse up")
 
 
 @dataclass(frozen=True)

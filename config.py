@@ -70,6 +70,9 @@ MOUSE_BOX = (0.25, 0.20, 0.75, 0.65)  # frame area (x0, y0, x1, y1) mapped to th
                                       # whole screen; smaller box = faster cursor
 MOUSE_SMOOTH_MIN_CUTOFF = 1.0  # lower = steadier cursor when still, more lag
 MOUSE_SMOOTH_BETA = 0.01       # higher = less lag when moving fast
+PINCH_ON = 0.25             # hand sizes between fingertips to count as a pinch
+PINCH_OFF = 0.40            # must open past this to release (prevents flicker)
+PINCH_FRAMES = 2            # consecutive pinch frames before clicking
 
 # --- Modes --------------------------------------------------------------------
 MODES = ["media", "slides", "pdf", "mouse", "game"]
