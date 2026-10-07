@@ -14,6 +14,7 @@ MIRROR = True               # flip like a mirror so moving right means your righ
 PROCESS_FPS = 15            # hand-tracking rate while a hand is visible
 IDLE_FPS = 3                # rate when no hand has been seen for IDLE_AFTER_S
 IDLE_AFTER_S = 2.0
+SHOW_PREVIEW = True         # start with the camera preview on ('v' toggles)
 
 # --- Hand model (MediaPipe Tasks HandLandmarker) -------------------------------
 MODEL_PATH = os.path.join(BASE_DIR, "models", "hand_landmarker.task")

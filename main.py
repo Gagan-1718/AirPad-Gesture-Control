@@ -1,6 +1,6 @@
 """AirPad: control your laptop with hand gestures.
 
-Keys (with the AirPad window focused): q / Esc = quit.
+Keys (with the AirPad window focused): v = toggle preview, q / Esc = quit.
 Run with --dry-run to see gestures without sending any key presses.
 """
 import argparse
@@ -8,6 +8,7 @@ import sys
 import time
 
 import cv2
+import numpy as np
 
 import config
 from actions import GestureController, press_key
@@ -66,6 +67,15 @@ def draw_overlay(img, state):
     if state["hold"] > 0:
         cv2.rectangle(img, (10, h - 30), (10 + int((w - 20) * state["hold"]), h - 18), YELLOW, -1)
         cv2.rectangle(img, (10, h - 30), (w - 10, h - 18), WHITE, 1)
+    text(img, "v: preview  q: quit", (w - 175, h - 8), GREY, 0.45)
+
+
+def status_panel(state):
+    """Tiny window shown when the preview is off (keeps key handling alive)."""
+    img = np.zeros((70, 320, 3), np.uint8)
+    text(img, f"Mode: {state['mode'].title()}", (10, 28), YELLOW, 0.7, 2)
+    text(img, state["action"] or ("idle" if state["idle"] else state["gesture"]), (10, 56), GREEN, 0.55)
+    return img
 
 
 def run(args):
@@ -76,6 +86,9 @@ def run(args):
     stability = StabilityFilter(*stability_for(controller.mode))
     motion = MotionTracker()
     mode = controller.mode
+
+    show_preview = config.SHOW_PREVIEW
+    cv2.namedWindow(config.WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
     last_process = 0.0
     last_hand_seen = time.monotonic()
     had_hand = False
@@ -134,14 +147,19 @@ def run(args):
                     "action": action if now < action_until else "",
                     "mode": controller.mode, "hold": controller.hold_progress,
                 }
-                if hand is not None:
-                    draw_hand(frame, hand)
-                draw_overlay(frame, state)
-                cv2.imshow(config.WINDOW_NAME, frame)
+                if show_preview:
+                    if hand is not None:
+                        draw_hand(frame, hand)
+                    draw_overlay(frame, state)
+                    cv2.imshow(config.WINDOW_NAME, frame)
+                else:
+                    cv2.imshow(config.WINDOW_NAME, status_panel(state))
                 shown = True
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
                 break
+            if key == ord("v"):
+                show_preview = not show_preview
             if shown and cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break               # window closed with the X button
     finally:
