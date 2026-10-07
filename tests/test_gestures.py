@@ -1,6 +1,6 @@
 import pytest
 
-from gestures import fingers_up, hand_size
+from gestures import classify, fingers_up, hand_size
 from helpers import make_hand
 
 
@@ -29,3 +29,16 @@ def test_detection_is_scale_independent(scale):
 @pytest.mark.parametrize("angle", [-60, -30, 30, 90])
 def test_detection_works_on_a_tilted_hand(angle):
     assert fingers_up(make_hand((1, 0, 1, 0), angle=angle))[1:] == [1, 0, 1, 0]
+
+
+@pytest.mark.parametrize("fingers, pose", [
+    ((1, 1, 1, 1), "palm"),
+    ((0, 0, 0, 0), "fist"),
+    ((1, 0, 0, 0), "one"),
+    ((1, 1, 0, 0), "two"),
+    ((1, 1, 1, 0), "three"),
+    ((0, 1, 0, 1), "other"),
+])
+@pytest.mark.parametrize("thumb", ["in", "out"])
+def test_classify_ignores_the_thumb(fingers, pose, thumb):
+    assert classify(fingers_up(make_hand(fingers, thumb))) == pose
