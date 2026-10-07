@@ -88,3 +88,7 @@ def test_moving_hand_is_not_still():
     m = MotionTracker()
     track(m, move(0.3, 0.6, 6))
     assert not m.is_still(6 / 15)
+
+
+def test_quick_swipe_right_after_raising_the_hand():
+    assert track(MotionTracker(), [(0.3, 0.5)] * 3 + move(0.3, 0.7, 5)) == "swipe_right"
