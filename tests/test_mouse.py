@@ -135,3 +135,11 @@ def test_cursor_slows_down_as_the_fingers_close_for_a_pinch():
     run(MouseController(normal), [point()] * 10 + [point(cx=320 + 2 * k) for k in range(1, 21)])
     run(MouseController(careful), [near_pinch()] * 10 + [near_pinch(cx=320 + 2 * k) for k in range(1, 21)])
     assert careful.position()[0] - 1500 < 0.5 * (normal.position()[0] - 1500)
+
+
+def test_click_does_not_drag_the_cursor():
+    out = FakeOutput()
+    hands = [point()] * 10 + [pinch_hand(cx=320 + 3 * k) for k in range(1, 5)]
+    run(MouseController(out), hands)
+    down = out.log.index(("mouse_down",))
+    assert not [e for e in out.log[down:] if e[0] == "move"]

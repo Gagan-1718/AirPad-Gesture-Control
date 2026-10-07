@@ -52,6 +52,7 @@ class MouseController:
         self._ref = None              # last filtered hand position (x, y, t)
         self._pos = (0.0, 0.0)        # cursor position with sub-pixel precision
         self._button_down = False
+        self._down_at = 0.0
         self._pinch_frames = 0
         self._right_pinched = False
         self._scroll_y = None
@@ -117,6 +118,8 @@ class MouseController:
             return
         rx, ry, rt = self._ref
         self._ref = (fx, fy, now)
+        if self._button_down and now - self._down_at < config.CLICK_FREEZE_S:
+            return                      # hold still so a click doesn't become a drag
         dx, dy = fx - rx, fy - ry
         speed = math.hypot(dx, dy) / max(now - rt, 1e-3)
         if speed < config.CURSOR_DEADZONE:
@@ -155,6 +158,7 @@ class MouseController:
             if self._pinch_frames >= config.PINCH_FRAMES:
                 self._pinch_frames = 0
                 self._button_down = True
+                self._down_at = now
                 self._out.mouse_down()
                 return "Click"
         else:
