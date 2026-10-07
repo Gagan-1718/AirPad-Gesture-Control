@@ -22,3 +22,12 @@ python main.py --camera 1   # use another webcam
 
 The hand model (~7.8 MB) downloads to `models/` on first run.
 With the AirPad window focused, **q** or **Esc** quits.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Tests use synthetic hand landmarks, so they need no camera.
