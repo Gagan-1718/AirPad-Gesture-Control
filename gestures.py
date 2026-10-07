@@ -63,11 +63,12 @@ def classify(fingers):
 
 
 class MotionTracker:
-    """Wrist position history over the last SWIPE_WINDOW_S seconds."""
+    """Wrist position history for swipe and stillness detection."""
 
     def __init__(self):
         self._history = deque()     # (t, x, y) in frame fractions
         self._first_seen = None
+        self._keep_s = max(config.SWIPE_WINDOW_S, config.STILL_WINDOW_S)
 
     def reset(self):
         self._history.clear()
@@ -81,7 +82,7 @@ class MotionTracker:
         if self._first_seen is None:
             self._first_seen = now
         self._history.append((now, x, y))
-        while self._history and now - self._history[0][0] > config.SWIPE_WINDOW_S:
+        while self._history and now - self._history[0][0] > self._keep_s:
             self._history.popleft()
 
     def _recent(self, now, window_s):
@@ -105,3 +106,11 @@ class MotionTracker:
             if dx > config.SWIPE_THRESHOLD and dy < config.SWIPE_MAX_SLOPE * dx:
                 return direction
         return None
+
+    def is_still(self, now):
+        samples = self._recent(now, config.STILL_WINDOW_S)
+        if len(samples) < 2:
+            return False
+        xs = [s[1] for s in samples]
+        ys = [s[2] for s in samples]
+        return max(xs) - min(xs) < config.STILL_THRESHOLD and max(ys) - min(ys) < config.STILL_THRESHOLD

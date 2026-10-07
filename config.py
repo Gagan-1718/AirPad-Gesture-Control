@@ -36,6 +36,10 @@ THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
 STABILITY_WINDOW = 5
 STABILITY_REQUIRED = 4
 
+# --- Stillness (static gestures only fire while the hand is roughly still) ----
+STILL_WINDOW_S = 0.25
+STILL_THRESHOLD = 0.04      # frame fraction the wrist may wander in that window
+
 # --- Cooldowns ------------------------------------------------------------------
 GESTURE_COOLDOWN_S = 0.8
 VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
