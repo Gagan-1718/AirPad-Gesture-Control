@@ -1,2 +1,14 @@
-# AirPad-Gesture-Control
-Your hand is the touchpad. Control your laptop with webcam hand gestures: cursor, clicks, scrolling, swipes and media. Real-time, 30 fps, lightweight. Python · MediaPipe · OpenCV.
+# AirPad
+
+Your hand is the touchpad. Control your laptop with webcam hand gestures.
+
+> Work in progress. See the [project plan](docs/PROJECT_PLAN.md) for the roadmap.
+
+## Setup
+
+```bash
+python -m venv venv
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS / Linux
+pip install -r requirements.txt
+```
