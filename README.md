@@ -6,11 +6,16 @@ Your hand is the touchpad. Control your laptop with webcam hand gestures.
 
 ## Gestures
 
-| Gesture | Action |
-|---|---|
-| ✋ Open palm | Play / Pause |
-| ☝️ Index finger up (hold to repeat) | Volume up |
-| ✌️ Index + middle up (hold to repeat) | Volume down |
+| Gesture | Media mode | Slides mode |
+|---|---|---|
+| ✋ Open palm (hold still briefly) | Play / Pause | — |
+| ☝️ Index finger up (hold to repeat) | Volume up | — |
+| ✌️ Index + middle up (hold to repeat) | Volume down | — |
+| 👉 Swipe right | Next track | Next slide |
+| 👈 Swipe left | Previous track | Previous slide |
+
+Swipe with a quick, sideways motion. Bringing your hand back afterwards is
+ignored, so repeated "next, next, next" swipes work.
 
 ## Setup
 
