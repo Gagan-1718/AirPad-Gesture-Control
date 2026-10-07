@@ -9,6 +9,9 @@ import time
 import urllib.request
 from dataclasses import dataclass
 
+os.environ.setdefault("GLOG_minloglevel", "2")       # hide MediaPipe's startup log noise
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+
 import cv2
 import mediapipe as mp
 from mediapipe.tasks.python import BaseOptions, vision
