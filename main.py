@@ -13,6 +13,7 @@ import numpy as np
 import config
 from actions import DryRunOutput, GestureController, Output
 from gestures import DISPLAY_NAMES, MotionTracker, classify, fingers_up, hand_size
+from mouse import MouseController
 from smoothing import StabilityFilter
 from tracker import HAND_CONNECTIONS, HandTracker
 
@@ -57,6 +58,9 @@ def draw_hand(img, hand):
 
 def draw_overlay(img, state):
     h, w = img.shape[:2]
+    if state["mode"] == "mouse":
+        x0, y0, x1, y1 = config.MOUSE_BOX
+        cv2.rectangle(img, (int(x0 * w), int(y0 * h)), (int(x1 * w), int(y1 * h)), YELLOW, 1)
     text(img, f"Mode: {state['mode'].title()}", (10, 28), YELLOW, 0.8, 2)
     text(img, f"{state['fps']:.0f} fps{'  IDLE' if state['idle'] else ''}", (w - 140, 28), GREY)
     if state["fingers"] is not None:
@@ -83,6 +87,7 @@ def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
     controller = GestureController(output)
+    mouse = MouseController(output)
     stability = StabilityFilter(*stability_for(controller.mode))
     motion = MotionTracker()
     mode = controller.mode
@@ -102,7 +107,12 @@ def run(args):
                 break
             now = time.monotonic()
             idle = now - last_hand_seen > config.IDLE_AFTER_S
-            interval = 1.0 / (config.IDLE_FPS if idle else config.PROCESS_FPS)
+            if idle:
+                interval = 1.0 / config.IDLE_FPS
+            elif controller.mode == "mouse":
+                interval = 1.0 / config.MOUSE_PROCESS_FPS
+            else:
+                interval = 1.0 / config.PROCESS_FPS
             if now - last_process >= interval:
                 last_process = now
                 ok, frame = cap.retrieve()
@@ -124,6 +134,9 @@ def run(args):
                     if swipe:
                         motion.clear_history()
                     fired = controller.update(now, stable, motion.is_still(now), swipe)
+                    if controller.mode == "mouse":
+                        swipe = None
+                        fired = fired or mouse.update(now, hand, stable, fingers)
                     gesture_name = DISPLAY_NAMES.get(swipe or stable, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
@@ -133,10 +146,12 @@ def run(args):
                     stability.reset()
                     motion.reset()
                     controller.hand_lost()
+                    mouse.release()
 
                 if controller.mode != mode:
                     mode = controller.mode
                     stability.configure(*stability_for(mode))
+                    mouse.release()
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
