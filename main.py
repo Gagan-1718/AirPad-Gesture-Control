@@ -48,6 +48,7 @@ def run(args):
     tracker = HandTracker()
     last_process = 0.0
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
+    shown = False
     try:
         while True:
             if not cap.grab():          # grab without decoding; cheap for skipped frames
@@ -70,10 +71,11 @@ def run(args):
                     fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
                 text(frame, f"{fps:.0f} fps", (frame.shape[1] - 90, 28), GREY)
                 cv2.imshow(config.WINDOW_NAME, frame)
+                shown = True
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
                 break
-            if cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
+            if shown and cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break               # window closed with the X button
     finally:
         cap.release()
