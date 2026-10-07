@@ -10,6 +10,25 @@ PINKY_MCP = 17
 FINGER_TIPS = (8, 12, 16, 20)   # index, middle, ring, pinky
 FINGER_PIPS = (6, 10, 14, 18)
 
+# (index, middle, ring, pinky) -> gesture. The thumb is deliberately ignored:
+# it is the least reliable landmark and none of these shapes need it.
+PATTERNS = {
+    (1, 1, 1, 1): "palm",
+    (0, 0, 0, 0): "fist",
+    (1, 0, 0, 0): "one",
+    (1, 1, 0, 0): "two",
+    (1, 1, 1, 0): "three",
+}
+
+DISPLAY_NAMES = {
+    "palm": "Open palm",
+    "fist": "Fist",
+    "one": "Index up",
+    "two": "Two fingers",
+    "three": "Three fingers",
+    "other": "Unknown",
+}
+
 
 def _dist(a, b):
     return math.hypot(a[0] - b[0], a[1] - b[1])
@@ -34,3 +53,7 @@ def fingers_up(hand):
     others = [_dist(pts[tip], wrist) > config.FINGER_EXTENDED_RATIO * _dist(pts[pip], wrist)
               for tip, pip in zip(FINGER_TIPS, FINGER_PIPS)]
     return [int(thumb)] + [int(f) for f in others]
+
+
+def classify(fingers):
+    return PATTERNS.get(tuple(fingers[1:]), "other")
