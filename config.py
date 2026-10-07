@@ -14,6 +14,10 @@ MIRROR = True               # flip like a mirror so moving right means your righ
 MODEL_PATH = os.path.join(BASE_DIR, "models", "hand_landmarker.task")
 MODEL_URL = ("https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
              "hand_landmarker/float16/latest/hand_landmarker.task")
+NUM_HANDS = 1
+MIN_DETECTION_CONFIDENCE = 0.7
+MIN_PRESENCE_CONFIDENCE = 0.6
+MIN_TRACKING_CONFIDENCE = 0.6
 
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"
