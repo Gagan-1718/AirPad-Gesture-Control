@@ -34,7 +34,7 @@ def test_detection_works_on_a_tilted_hand(angle):
 @pytest.mark.parametrize("fingers, pose", [
     ((1, 1, 1, 1), "palm"),
     ((0, 0, 0, 0), "fist"),
-    ((1, 0, 0, 0), "one"),
+    ((1, 0, 0, 0), "point"),
     ((1, 1, 0, 0), "two"),
     ((1, 1, 1, 0), "three"),
     ((0, 1, 0, 1), "other"),

@@ -16,7 +16,7 @@ FINGER_PIPS = (6, 10, 14, 18)
 PATTERNS = {
     (1, 1, 1, 1): "palm",
     (0, 0, 0, 0): "fist",
-    (1, 0, 0, 0): "one",
+    (1, 0, 0, 0): "point",
     (1, 1, 0, 0): "two",
     (1, 1, 1, 0): "three",
 }
@@ -24,7 +24,7 @@ PATTERNS = {
 DISPLAY_NAMES = {
     "palm": "Open palm",
     "fist": "Fist",
-    "one": "Index up",
+    "point": "Point",
     "two": "Two fingers",
     "three": "Three fingers",
     "other": "Unknown",

@@ -42,7 +42,7 @@ def test_palm_fires_again_after_changing_pose():
 
 def test_volume_repeats_while_held():
     out = FakeOutput()
-    feed(GestureController(out), ["one"] * 15)      # 1 second
+    feed(GestureController(out), ["point"] * 15)      # 1 second
     assert out.keys() == ["volumeup"] * 4
 
 
@@ -127,7 +127,7 @@ def test_pdf_mode_turns_pages_and_scrolls():
     out = FakeOutput()
     ctrl = GestureController(out)
     ctrl.mode = "pdf"
-    feed(ctrl, ["one"] * 5)
+    feed(ctrl, ["point"] * 5)
     ctrl.update(10.0, None, False, "swipe_right")
     assert out.log[0] == ("scroll", -120)
     assert out.log[-1] == ("press", "pagedown")

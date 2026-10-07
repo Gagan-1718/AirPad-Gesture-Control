@@ -97,12 +97,12 @@ SWIPE_BINDINGS = {
 STATIC_BINDINGS = {
     "media": {
         "palm": Binding(press("playpause"), "Play / Pause", hold_s=config.PLAYPAUSE_HOLD_S),
-        "one": Binding(press("volumeup"), "Volume up", repeat_s=config.VOLUME_REPEAT_S),
+        "point": Binding(press("volumeup"), "Volume up", repeat_s=config.VOLUME_REPEAT_S),
         "two": Binding(press("volumedown"), "Volume down", repeat_s=config.VOLUME_REPEAT_S),
     },
     "slides": {},
     "pdf": {
-        "one": Binding(scroll(-config.PDF_SCROLL_STEP), "Scroll down", repeat_s=config.PDF_SCROLL_REPEAT_S),
+        "point": Binding(scroll(-config.PDF_SCROLL_STEP), "Scroll down", repeat_s=config.PDF_SCROLL_REPEAT_S),
         "two": Binding(scroll(config.PDF_SCROLL_STEP), "Scroll up", repeat_s=config.PDF_SCROLL_REPEAT_S),
     },
     "mouse": {},

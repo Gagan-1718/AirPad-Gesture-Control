@@ -19,7 +19,7 @@ def right_click_hand(cx=320, cy=400):
     return hand
 
 
-def run(mouse, hands, gesture="one", dt=1 / 30):
+def run(mouse, hands, gesture="point", dt=1 / 30):
     """Feed hands at 30 fps; return the event labels."""
     events = []
     for i, hand in enumerate(hands, start=1):
