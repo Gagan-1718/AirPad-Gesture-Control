@@ -10,7 +10,7 @@
 - Pinch thumb + middle with the index up: right click.
 - Two fingers up, move hand up / down: scroll.
 The cursor follows the index-finger knuckle (landmark 5), not the fingertip,
-so the cursor does not jump when you pinch.
+and slows down as your fingers approach a pinch, so clicks land where you aim.
 """
 import math
 
@@ -98,7 +98,7 @@ class MouseController:
             self._scroll_y = None
 
         if self._button_down or self._moving:
-            self._move(now, hand)
+            self._move(now, hand, slow=not self._button_down and pinch < config.PRECISION_ZONE)
         else:
             self._lift()
 
@@ -106,7 +106,7 @@ class MouseController:
             event = self._buttons(now, pinch, right, fingers) or event
         return event
 
-    def _move(self, now, hand):
+    def _move(self, now, hand, slow):
         nx, ny = hand.norm(INDEX_MCP)
         # Smooth in camera pixels so the filter's speed terms behave the same at any resolution.
         fx = self._fx(now, nx * hand.frame_w) / hand.frame_w
@@ -124,6 +124,8 @@ class MouseController:
         t = (speed - config.CURSOR_ACCEL_START) / (config.CURSOR_ACCEL_FULL - config.CURSOR_ACCEL_START)
         t = min(max(t, 0.0), 1.0)
         gain = config.CURSOR_MIN_SPEED + (config.CURSOR_MAX_SPEED - config.CURSOR_MIN_SPEED) * t
+        if slow:
+            gain *= config.PRECISION_FACTOR
         x = min(max(self._pos[0] + dx * gain * self._screen_w, EDGE), self._screen_w - 1 - EDGE)
         y = min(max(self._pos[1] + dy * gain * self._screen_h, EDGE), self._screen_h - 1 - EDGE)
         if (int(x), int(y)) != (int(self._pos[0]), int(self._pos[1])):

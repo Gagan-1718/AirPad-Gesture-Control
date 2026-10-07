@@ -120,3 +120,18 @@ def test_cursor_stays_off_the_screen_corners():
     out = FakeOutput()
     run(MouseController(out), [point(cx=600 - 12 * k) for k in range(45)])
     assert out.position()[0] >= 2
+
+
+def near_pinch(cx=320, cy=400):
+    """Pointing with the thumb closing in on the index tip (not a click yet)."""
+    hand = point(cx, cy)
+    tip = hand.points[8]
+    hand.points[4] = (tip[0] - 40, tip[1])
+    return hand
+
+
+def test_cursor_slows_down_as_the_fingers_close_for_a_pinch():
+    normal, careful = FakeOutput(), FakeOutput()
+    run(MouseController(normal), [point()] * 10 + [point(cx=320 + 2 * k) for k in range(1, 21)])
+    run(MouseController(careful), [near_pinch()] * 10 + [near_pinch(cx=320 + 2 * k) for k in range(1, 21)])
+    assert careful.position()[0] - 1500 < 0.5 * (normal.position()[0] - 1500)
