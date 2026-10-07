@@ -69,6 +69,9 @@ venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 ```
 
+> Keep the venv out of OneDrive/Dropbox folders. Syncing thousands of
+> package files is slow.
+
 ## Run
 
 ```bash
@@ -78,6 +81,10 @@ python main.py --camera 1   # use another webcam
 ```
 
 The hand model (~7.8 MB) downloads to `models/` on first run.
+
+A small preview window stays on top of other windows. With it focused, **v**
+switches to a tiny status bar and back, and **q** or **Esc** quits. Emergency
+stop: slam the real mouse into a screen corner.
 
 ## Tests
 
