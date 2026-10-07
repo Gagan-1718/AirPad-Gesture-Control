@@ -128,6 +128,10 @@ class GestureController:
         self._last_swipe = None       # (direction, time)
         self.hold_progress = 0.0      # 0..1 for the mode-switch progress bar
 
+    def set_mode(self, mode):
+        self.mode = mode
+        self.hand_lost()
+
     def _perform(self, action):
         kind, arg = action
         getattr(self._output, kind)(arg)

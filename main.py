@@ -1,6 +1,7 @@
 """AirPad: control your laptop with hand gestures.
 
-Keys (with the AirPad window focused): v = toggle preview, q / Esc = quit.
+Keys (with the AirPad window focused): 1-5 = pick mode, v = toggle preview,
+q / Esc = quit.
 Run with --dry-run to see gestures without sending any key presses.
 """
 import argparse
@@ -37,6 +38,10 @@ def open_camera(index):
     return cap
 
 
+def mode_title(mode):
+    return f"{config.MODES.index(mode) + 1} {'PDF' if mode == 'pdf' else mode.title()}"
+
+
 def stability_for(mode):
     if mode == "game":
         return config.GAME_STABILITY_WINDOW, config.GAME_STABILITY_REQUIRED
@@ -61,7 +66,7 @@ def draw_overlay(img, state):
     if state["mode"] == "mouse":
         x0, y0, x1, y1 = config.MOUSE_BOX
         cv2.rectangle(img, (int(x0 * w), int(y0 * h)), (int(x1 * w), int(y1 * h)), YELLOW, 1)
-    text(img, f"Mode: {state['mode'].title()}", (10, 28), YELLOW, 0.8, 2)
+    text(img, f"Mode: {mode_title(state['mode'])}", (10, 28), YELLOW, 0.8, 2)
     text(img, f"{state['fps']:.0f} fps{'  IDLE' if state['idle'] else ''}", (w - 140, 28), GREY)
     if state["fingers"] is not None:
         text(img, f"Gesture: {state['gesture']}", (10, 58))
@@ -71,13 +76,13 @@ def draw_overlay(img, state):
     if state["hold"] > 0:
         cv2.rectangle(img, (10, h - 30), (10 + int((w - 20) * state["hold"]), h - 18), YELLOW, -1)
         cv2.rectangle(img, (10, h - 30), (w - 10, h - 18), WHITE, 1)
-    text(img, "v: preview  q: quit", (w - 175, h - 8), GREY, 0.45)
+    text(img, "1-5: mode  v: preview  q: quit", (w - 255, h - 8), GREY, 0.45)
 
 
 def status_panel(state):
     """Tiny window shown when the preview is off (keeps key handling alive)."""
     img = np.zeros((70, 320, 3), np.uint8)
-    text(img, f"Mode: {state['mode'].title()}", (10, 28), YELLOW, 0.7, 2)
+    text(img, f"Mode: {mode_title(state['mode'])}", (10, 28), YELLOW, 0.7, 2)
     text(img, state["action"] or ("idle" if state["idle"] else state["gesture"]), (10, 56), GREEN, 0.55)
     return img
 
@@ -176,6 +181,9 @@ def run(args):
                 break
             if key == ord("v"):
                 show_preview = not show_preview
+            if ord("1") <= key < ord("1") + len(config.MODES):
+                controller.set_mode(config.MODES[key - ord("1")])
+                action, action_until = f"Mode: {mode_title(controller.mode)}", time.monotonic() + config.ACTION_FLASH_S
             if shown and cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break               # window closed with the X button
     finally:

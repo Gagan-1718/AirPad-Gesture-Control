@@ -79,7 +79,7 @@ MOUSE_SCROLL_GAIN = 4000    # wheel units per frame-height of hand movement
 MOUSE_SCROLL_DEADZONE = 0.004  # ignore tiny hand jitter while scrolling
 
 # --- Modes --------------------------------------------------------------------
-MODES = ["media", "slides", "pdf", "mouse", "game"]
+MODES = ["media", "slides", "pdf", "mouse", "game"]   # keys 1-5 jump directly
 START_MODE = "media"
 
 # --- UI -----------------------------------------------------------------------
