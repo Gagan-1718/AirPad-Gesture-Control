@@ -1,4 +1,4 @@
-from smoothing import StabilityFilter
+from smoothing import Cooldowns, StabilityFilter
 
 
 def test_label_needs_enough_votes():
@@ -19,3 +19,17 @@ def test_reset_clears_history():
         f.update("palm")
     f.reset()
     assert f.update("palm") is None
+
+
+def test_cooldown_blocks_until_it_expires():
+    c = Cooldowns()
+    assert c.ready("palm", now=0.0)
+    c.trigger("palm", now=0.0, seconds=0.8)
+    assert not c.ready("palm", now=0.5)
+    assert c.ready("palm", now=0.8)
+
+
+def test_cooldowns_are_independent_per_key():
+    c = Cooldowns()
+    c.trigger("palm", now=0.0, seconds=1.0)
+    assert c.ready("fist", now=0.1)
