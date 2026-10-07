@@ -67,15 +67,19 @@ class MotionTracker:
 
     def __init__(self):
         self._history = deque()     # (t, x, y) in frame fractions
+        self._first_seen = None
 
     def reset(self):
         self._history.clear()
+        self._first_seen = None
 
     def clear_history(self):
-        """Forget past motion (used after a swipe)."""
+        """Forget past motion but keep the hand armed (used after a swipe)."""
         self._history.clear()
 
     def update(self, now, x, y):
+        if self._first_seen is None:
+            self._first_seen = now
         self._history.append((now, x, y))
         while self._history and now - self._history[0][0] > config.SWIPE_WINDOW_S:
             self._history.popleft()
@@ -85,7 +89,10 @@ class MotionTracker:
 
     def detect_swipe(self, now):
         """Return "swipe_left", "swipe_right" or None."""
-        samples = self._recent(now, config.SWIPE_WINDOW_S)
+        if self._first_seen is None:
+            return None
+        armed_at = self._first_seen + config.SWIPE_ARM_S
+        samples = [s for s in self._recent(now, config.SWIPE_WINDOW_S) if s[0] >= armed_at]
         if len(samples) < 3:
             return None
         _, x_now, y_now = samples[-1]

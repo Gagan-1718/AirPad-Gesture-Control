@@ -72,3 +72,7 @@ def test_slow_move_is_not_a_swipe():
 
 def test_diagonal_move_is_not_a_swipe():
     assert track(MotionTracker(), [(0.3, 0.3)] * 6 + move(0.3, 0.6, 4, 0.3, 0.8)) is None
+
+
+def test_hand_entering_from_the_edge_is_not_a_swipe():
+    assert track(MotionTracker(), move(0.05, 0.5, 4) + [(0.5, 0.5)] * 10) is None

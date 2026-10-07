@@ -44,6 +44,7 @@ VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
 SWIPE_WINDOW_S = 0.4
 SWIPE_THRESHOLD = 0.25      # frame-width fraction the wrist must travel
 SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
+SWIPE_ARM_S = 0.3           # ignore movement right after a hand appears
 SWIPE_COOLDOWN_S = 1.0      # applies to both directions
 SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
 
