@@ -2,6 +2,7 @@
 
 Keys (with the AirPad window focused): q / Esc = quit.
 """
+import argparse
 import sys
 
 import cv2
@@ -23,8 +24,8 @@ def open_camera(index):
     return cap
 
 
-def run():
-    cap = open_camera(config.CAMERA_INDEX)
+def run(args):
+    cap = open_camera(args.camera)
     try:
         while True:
             ok, frame = cap.read()
@@ -43,7 +44,9 @@ def run():
 
 
 def main():
-    run()
+    parser = argparse.ArgumentParser(description="Control your laptop with hand gestures.")
+    parser.add_argument("--camera", type=int, default=config.CAMERA_INDEX, help="camera index")
+    run(parser.parse_args())
 
 
 if __name__ == "__main__":
