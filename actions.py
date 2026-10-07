@@ -18,9 +18,23 @@ pyautogui.PAUSE = 0          # default 0.1 s pause per call would stall the loop
 pyautogui.FAILSAFE = True    # slam the mouse into a corner to abort
 
 
+class Output:
+    """Sends real keyboard and mouse input to the OS."""
+
+    def press(self, key):
+        pyautogui.press(key)
+
+
+class DryRunOutput(Output):
+    """Prints actions instead of sending them."""
+
+    def press(self, key):
+        print(f"[dry-run] press {key}")
+
+
 @dataclass(frozen=True)
 class Binding:
-    key: str
+    action: tuple                   # ("press", key)
     label: str
     hold_s: float = 0.0             # gesture must be held (still) this long
     cooldown_s: float = config.GESTURE_COOLDOWN_S
@@ -28,30 +42,30 @@ class Binding:
     require_still: bool = True
 
 
+def press(key):
+    return ("press", key)
+
+
 SWIPE_BINDINGS = {
-    "media": {"swipe_right": Binding("nexttrack", "Next track"),
-              "swipe_left": Binding("prevtrack", "Previous track")},
-    "slides": {"swipe_right": Binding("right", "Next slide"),
-               "swipe_left": Binding("left", "Previous slide")},
-    "game": {"swipe_right": Binding("right", "Move right"),
-             "swipe_left": Binding("left", "Move left")},
+    "media": {"swipe_right": Binding(press("nexttrack"), "Next track"),
+              "swipe_left": Binding(press("prevtrack"), "Previous track")},
+    "slides": {"swipe_right": Binding(press("right"), "Next slide"),
+               "swipe_left": Binding(press("left"), "Previous slide")},
+    "game": {"swipe_right": Binding(press("right"), "Move right"),
+             "swipe_left": Binding(press("left"), "Move left")},
 }
 
 STATIC_BINDINGS = {
     "media": {
-        "palm": Binding("playpause", "Play / Pause", hold_s=config.PLAYPAUSE_HOLD_S),
-        "one": Binding("volumeup", "Volume up", repeat_s=config.VOLUME_REPEAT_S),
-        "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
+        "palm": Binding(press("playpause"), "Play / Pause", hold_s=config.PLAYPAUSE_HOLD_S),
+        "one": Binding(press("volumeup"), "Volume up", repeat_s=config.VOLUME_REPEAT_S),
+        "two": Binding(press("volumedown"), "Volume down", repeat_s=config.VOLUME_REPEAT_S),
     },
     "slides": {},
     "game": {
-        "fist": Binding("space", "Jump", cooldown_s=config.JUMP_COOLDOWN_S, require_still=False),
+        "fist": Binding(press("space"), "Jump", cooldown_s=config.JUMP_COOLDOWN_S, require_still=False),
     },
 }
-
-
-def press_key(key):
-    pyautogui.press(key)
 
 
 MODE_SWITCH = "three"
@@ -59,8 +73,8 @@ _LATCH_NEXT = object()   # latch whichever gesture is seen next
 
 
 class GestureController:
-    def __init__(self, send=press_key):
-        self._send = send
+    def __init__(self, output):
+        self._output = output
         self.mode = config.START_MODE
         self._cooldowns = Cooldowns()
         self._latched = None          # gesture already used; ignored until it changes
@@ -69,6 +83,10 @@ class GestureController:
         self._static_block_until = 0.0
         self._last_swipe = None       # (direction, time)
         self.hold_progress = 0.0      # 0..1 for the mode-switch progress bar
+
+    def _perform(self, action):
+        kind, arg = action
+        getattr(self._output, kind)(arg)
 
     def hand_lost(self):
         self._latched = None
@@ -108,7 +126,7 @@ class GestureController:
         binding = STATIC_BINDINGS[self.mode].get(gesture)
         if binding is None or held < binding.hold_s or not self._cooldowns.ready(gesture, now):
             return None
-        self._send(binding.key)
+        self._perform(binding.action)
         if binding.repeat_s is not None:
             self._cooldowns.trigger(gesture, now, binding.repeat_s)
         else:
@@ -141,7 +159,7 @@ class GestureController:
         binding = SWIPE_BINDINGS[self.mode].get(swipe)
         if binding is None or not self._cooldowns.ready("swipe", now):
             return None
-        self._send(binding.key)
+        self._perform(binding.action)
         self._cooldowns.trigger("swipe", now, config.SWIPE_COOLDOWN_S)
         self._last_swipe = (swipe, now)
         return binding.label

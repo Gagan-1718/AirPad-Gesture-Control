@@ -37,3 +37,35 @@ def make_hand(fingers=(1, 1, 1, 1), thumb="in", cx=320, cy=400, scale=1.0, angle
         tip = [at(dx, -165), at(dx, -190)] if up else [at(dx, -115), at(dx, -85)]
         pts += [at(dx, -100), at(dx, -140)] + tip
     return FakeHand(pts)
+
+
+class FakeOutput:
+    """Records keyboard and mouse output instead of sending it to the OS."""
+
+    def __init__(self):
+        self.log = []
+
+    def press(self, key):
+        self.log.append(("press", key))
+
+    def scroll(self, amount):
+        self.log.append(("scroll", amount))
+
+    def move(self, x, y):
+        self.log.append(("move", x, y))
+
+    def mouse_down(self):
+        self.log.append(("mouse_down",))
+
+    def mouse_up(self):
+        self.log.append(("mouse_up",))
+
+    def right_click(self):
+        self.log.append(("right_click",))
+
+    def keys(self):
+        return [entry[1] for entry in self.log if entry[0] == "press"]
+
+    def events(self):
+        """Everything except cursor moves."""
+        return [entry for entry in self.log if entry[0] != "move"]

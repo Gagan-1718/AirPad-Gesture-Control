@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 
 import config
-from actions import GestureController, press_key
+from actions import DryRunOutput, GestureController, Output
 from gestures import DISPLAY_NAMES, MotionTracker, classify, fingers_up, hand_size
 from smoothing import StabilityFilter
 from tracker import HAND_CONNECTIONS, HandTracker
@@ -79,10 +79,10 @@ def status_panel(state):
 
 
 def run(args):
-    send = (lambda key: print(f"[dry-run] {key}")) if args.dry_run else press_key
+    output = DryRunOutput() if args.dry_run else Output()
     cap = open_camera(args.camera)
     tracker = HandTracker()
-    controller = GestureController(send)
+    controller = GestureController(output)
     stability = StabilityFilter(*stability_for(controller.mode))
     motion = MotionTracker()
     mode = controller.mode
