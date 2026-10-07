@@ -36,5 +36,8 @@ THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
 STABILITY_WINDOW = 5
 STABILITY_REQUIRED = 4
 
+# --- Cooldowns ------------------------------------------------------------------
+GESTURE_COOLDOWN_S = 0.8
+
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"
