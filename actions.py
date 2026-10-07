@@ -3,6 +3,7 @@
 Cursor, clicks and scrolling live in mouse.py. This file handles:
 - Swipes, whose meaning depends on the hand shape:
     open palm   -> Right / Left arrow   (next / previous slide, page, photo)
+    two fingers -> Alt+Right / Alt+Left (browser forward / back)
 - Open palm held still -> play / pause.
 - Thumbs up / down held -> volume up / down (repeats while held).
 
@@ -26,6 +27,9 @@ class Output:
     def press(self, key):
         pyautogui.press(key)
 
+    def hotkey(self, keys):
+        pyautogui.hotkey(*keys)
+
     def scroll(self, amount):
         pyautogui.scroll(amount)    # Windows: 120 units = one wheel notch
 
@@ -48,6 +52,9 @@ class DryRunOutput(Output):
     def press(self, key):
         print(f"[dry-run] press {key}")
 
+    def hotkey(self, keys):
+        print(f"[dry-run] hotkey {'+'.join(keys)}")
+
     def scroll(self, amount):
         print(f"[dry-run] scroll {amount}")
 
@@ -66,7 +73,7 @@ class DryRunOutput(Output):
 
 @dataclass(frozen=True)
 class Binding:
-    action: tuple                   # ("press", key)
+    action: tuple                   # ("press", key) or ("hotkey", (key, ...))
     label: str
     hold_s: float = 0.0             # pose must be held this long (still, if required)
     cooldown_s: float = config.GESTURE_COOLDOWN_S
@@ -78,9 +85,15 @@ def press(key):
     return ("press", key)
 
 
+def hotkey(*keys):
+    return ("hotkey", keys)
+
+
 SWIPE_BINDINGS = {
     ("palm", "swipe_right"): Binding(press("right"), "Next"),
     ("palm", "swipe_left"): Binding(press("left"), "Previous"),
+    ("two", "swipe_right"): Binding(hotkey("alt", "right"), "Forward"),
+    ("two", "swipe_left"): Binding(hotkey("alt", "left"), "Back"),
 }
 SWIPE_POSES = {pose for pose, _ in SWIPE_BINDINGS}
 

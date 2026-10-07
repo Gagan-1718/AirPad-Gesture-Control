@@ -50,6 +50,9 @@ class FakeOutput:
     def press(self, key):
         self.log.append(("press", key))
 
+    def hotkey(self, keys):
+        self.log.append(("hotkey", tuple(keys)))
+
     def scroll(self, amount):
         self.log.append(("scroll", amount))
 

@@ -97,3 +97,11 @@ def test_blurred_swipe_still_latches_the_final_pose():
     frames = ["palm"] * 3 + [(None, False, ("swipe_right", "palm"))] + ["palm"] * 60
     feed(GestureController(out), frames)
     assert out.keys() == ["right"]
+
+
+def test_two_finger_swipes_go_back_and_forward():
+    out = FakeOutput()
+    ctrl = GestureController(out)
+    assert ctrl.update(1.0, None, False, ("swipe_left", "two")) == "Back"
+    assert ctrl.update(3.0, None, False, ("swipe_right", "two")) == "Forward"
+    assert out.log == [("hotkey", ("alt", "left")), ("hotkey", ("alt", "right"))]
