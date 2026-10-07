@@ -32,5 +32,9 @@ MIN_HAND_SIZE = 0.05        # frame-height fraction; smaller hands (far away /
 FINGER_EXTENDED_RATIO = 1.15
 THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
 
+# --- Stability filter (gesture must win `required` of the last `window` frames)
+STABILITY_WINDOW = 5
+STABILITY_REQUIRED = 4
+
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"

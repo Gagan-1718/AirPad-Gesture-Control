@@ -9,7 +9,8 @@ import time
 import cv2
 
 import config
-from gestures import hand_size
+from gestures import DISPLAY_NAMES, classify, fingers_up, hand_size
+from smoothing import StabilityFilter
 from tracker import HAND_CONNECTIONS, HandTracker
 
 GREEN = (80, 220, 100)
@@ -47,6 +48,7 @@ def draw_hand(img, hand):
 def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
+    stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
     last_process = 0.0
     last_hand_seen = time.monotonic()
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
@@ -72,6 +74,12 @@ def run(args):
                 if hand is not None:
                     last_hand_seen = now
                     draw_hand(frame, hand)
+                    fingers = fingers_up(hand)
+                    stable = stability.update(classify(fingers))
+                    text(frame, f"Gesture: {DISPLAY_NAMES.get(stable, '...')}", (10, 58))
+                    text(frame, "Fingers: " + "".join(map(str, fingers)), (10, 84), GREY, 0.5)
+                else:
+                    stability.reset()
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
