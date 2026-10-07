@@ -35,6 +35,8 @@ THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
 # --- Stability filter (gesture must win `required` of the last `window` frames)
 STABILITY_WINDOW = 5
 STABILITY_REQUIRED = 4
+GAME_STABILITY_WINDOW = 3   # game mode trades a little accuracy for speed
+GAME_STABILITY_REQUIRED = 2
 
 # --- Stillness (static gestures only fire while the hand is roughly still) ----
 STILL_WINDOW_S = 0.25

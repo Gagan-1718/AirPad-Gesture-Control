@@ -35,6 +35,12 @@ def open_camera(index):
     return cap
 
 
+def stability_for(mode):
+    if mode == "game":
+        return config.GAME_STABILITY_WINDOW, config.GAME_STABILITY_REQUIRED
+    return config.STABILITY_WINDOW, config.STABILITY_REQUIRED
+
+
 def text(img, msg, org, color=WHITE, scale=0.6, thickness=1):
     cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), thickness + 2, cv2.LINE_AA)
     cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness, cv2.LINE_AA)
@@ -67,8 +73,9 @@ def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
     controller = GestureController(send)
-    stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
+    stability = StabilityFilter(*stability_for(controller.mode))
     motion = MotionTracker()
+    mode = controller.mode
     last_process = 0.0
     last_hand_seen = time.monotonic()
     had_hand = False
@@ -113,6 +120,10 @@ def run(args):
                     stability.reset()
                     motion.reset()
                     controller.hand_lost()
+
+                if controller.mode != mode:
+                    mode = controller.mode
+                    stability.configure(*stability_for(mode))
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
