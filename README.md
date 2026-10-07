@@ -1,23 +1,34 @@
 # AirPad
 
-Your hand is the touchpad. Control your laptop with webcam hand gestures.
+**Your hand is the touchpad.** Use your laptop with hand gestures through your
+webcam: move the cursor, click, drag, scroll, flip slides and PDF pages, go back
+in the browser, switch apps and control media. One mode, always on, no switching.
 
-> Work in progress. See the [project plan](docs/PROJECT_PLAN.md) for the roadmap.
+It tracks at the camera's full 30 fps while your hand is in view, using about 5%
+of the CPU on a modern laptop, and drops to 5 fps when no hand is visible.
+
+<!-- demo GIF goes here: ![demo](demo/demo.gif) -->
 
 ## Gestures
 
-| Gesture | Media mode | Slides mode |
-|---|---|---|
-| ✋ Open palm (hold still briefly) | Play / Pause | — |
-| ☝️ Index finger up (hold to repeat) | Volume up | — |
-| ✌️ Index + middle up (hold to repeat) | Volume down | — |
-| 👉 Swipe right | Next track | Next slide |
-| 👈 Swipe left | Previous track | Previous slide |
+### Cursor (like a touchpad)
 
-Swipe with a quick, sideways motion. Bringing your hand back afterwards is
-ignored, so repeated "next, next, next" swipes work.
+| Gesture | Action |
+|---|---|
+| ☝️ Point (index up) and move | Move the cursor |
+| ✊ Fist | "Lift your finger": the cursor stays put while you reposition your hand |
+| 🤏 Pinch thumb + index | Left click (pinch twice quickly = double-click) |
+| 🤏 Pinch and hold, then move | Drag |
+| Pinch thumb + middle tip, index up | Right click |
+| ✌️ Two fingers up, move hand up / down | Scroll (the page follows your hand) |
 
-## Setup
+The cursor speeds up with your hand: move slowly for precision, flick to cross
+the screen. It slows down as your fingers close in for a pinch, so clicks land
+where you aim.
+
+## Install
+
+Python 3.10 or newer (tested on 3.14 with MediaPipe 1.1).
 
 ```bash
 python -m venv venv
@@ -30,12 +41,11 @@ pip install -r requirements.txt
 
 ```bash
 python main.py              # normal
-python main.py --dry-run    # print actions instead of pressing keys
+python main.py --dry-run    # print actions instead of sending input
 python main.py --camera 1   # use another webcam
 ```
 
 The hand model (~7.8 MB) downloads to `models/` on first run.
-With the AirPad window focused, **q** or **Esc** quits.
 
 ## Tests
 
