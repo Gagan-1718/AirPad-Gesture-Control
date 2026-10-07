@@ -53,6 +53,7 @@ SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
 SWIPE_ARM_S = 0.3           # ignore movement right after a hand appears
 SWIPE_COOLDOWN_S = 1.0      # applies to both directions
 SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
+SWIPE_STATIC_BLOCK_S = 0.6  # no static gestures right after a swipe
 
 # --- Modes --------------------------------------------------------------------
 MODES = ["media", "slides"]

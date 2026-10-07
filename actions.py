@@ -57,6 +57,7 @@ class GestureController:
         self._latched = None          # gesture already used; ignored until it changes
         self._hold_label = None
         self._hold_start = 0.0
+        self._static_block_until = 0.0
         self._last_swipe = None       # (direction, time)
 
     def hand_lost(self):
@@ -70,13 +71,13 @@ class GestureController:
         swipe: "swipe_left" / "swipe_right" / None.
         """
         if swipe:
-            return self._handle_swipe(now, swipe)
+            return self._handle_swipe(now, gesture, swipe)
 
         if gesture is not None and gesture != self._latched:
             self._latched = None
         self._update_hold(now, gesture, still)
 
-        if gesture is None or gesture == self._latched:
+        if gesture is None or gesture == self._latched or now < self._static_block_until:
             return None
         held = now - self._hold_start
 
@@ -101,7 +102,12 @@ class GestureController:
         if binding is not None and binding.require_still and not still:
             self._hold_start = now
 
-    def _handle_swipe(self, now, swipe):
+    def _handle_swipe(self, now, gesture, swipe):
+        # Whatever shape the hand ends the swipe in must not fire on its own.
+        self._latched = gesture
+        self._hold_label = None
+        self._static_block_until = now + config.SWIPE_STATIC_BLOCK_S
+
         if self._last_swipe is not None:
             last_dir, last_t = self._last_swipe
             if swipe != last_dir and now - last_t < config.SWIPE_REVERSE_BLOCK_S:

@@ -85,3 +85,10 @@ def test_return_stroke_after_a_swipe_is_ignored():
     ctrl.update(2.2, None, False, "swipe_left")    # hand coming back
     ctrl.update(3.0, None, False, "swipe_right")   # next real swipe
     assert sent == ["right", "right"]
+
+
+def test_palm_held_after_a_swipe_does_not_toggle_play_pause():
+    sent = []
+    frames = ["palm"] * 3 + [("palm", False, "swipe_right")] + ["palm"] * 30
+    feed(GestureController(sent.append), frames)
+    assert sent == ["nexttrack"]
