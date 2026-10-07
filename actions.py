@@ -1,6 +1,6 @@
 """Maps gestures to key presses.
 
-- One-shot actions (play/pause) fire once, then "latch": holding the
+- One-shot actions (play/pause, swipes) fire once, then "latch": holding the
   gesture does not repeat it. Change gesture or remove the hand to re-arm.
 - Repeat actions (volume) keep firing every `repeat_s` while held.
 """
@@ -23,7 +23,12 @@ class Binding:
     repeat_s: float | None = None   # repeat while held instead of latching
 
 
-BINDINGS = {
+SWIPE_BINDINGS = {
+    "swipe_right": Binding("nexttrack", "Next track"),
+    "swipe_left": Binding("prevtrack", "Previous track"),
+}
+
+STATIC_BINDINGS = {
     "palm": Binding("playpause", "Play / Pause"),
     "one": Binding("volumeup", "Volume up", repeat_s=config.VOLUME_REPEAT_S),
     "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
@@ -43,11 +48,13 @@ class GestureController:
     def hand_lost(self):
         self._latched = None
 
-    def update(self, now, gesture):
+    def update(self, now, gesture, swipe=None):
         """Feed one processed frame. Returns the fired action label, or None."""
+        if swipe:
+            return self._handle_swipe(now, swipe)
         if gesture is not None and gesture != self._latched:
             self._latched = None
-        binding = BINDINGS.get(gesture)
+        binding = STATIC_BINDINGS.get(gesture)
         if binding is None or gesture == self._latched or not self._cooldowns.ready(gesture, now):
             return None
         self._send(binding.key)
@@ -56,4 +63,12 @@ class GestureController:
         else:
             self._cooldowns.trigger(gesture, now, binding.cooldown_s)
             self._latched = gesture
+        return binding.label
+
+    def _handle_swipe(self, now, swipe):
+        binding = SWIPE_BINDINGS.get(swipe)
+        if binding is None or not self._cooldowns.ready("swipe", now):
+            return None
+        self._send(binding.key)
+        self._cooldowns.trigger("swipe", now, config.SWIPE_COOLDOWN_S)
         return binding.label
