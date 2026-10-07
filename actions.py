@@ -37,6 +37,9 @@ class Output:
     def mouse_up(self):
         pyautogui.mouseUp()
 
+    def right_click(self):
+        pyautogui.click(button="right")
+
 
 class DryRunOutput(Output):
     """Prints actions instead of sending them. The cursor is not moved."""
@@ -55,6 +58,9 @@ class DryRunOutput(Output):
 
     def mouse_up(self):
         print("[dry-run] mouse up")
+
+    def right_click(self):
+        print("[dry-run] right click")
 
 
 @dataclass(frozen=True)

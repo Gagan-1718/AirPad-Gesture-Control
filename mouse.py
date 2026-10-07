@@ -3,6 +3,7 @@
 - Cursor follows the index-finger knuckle (landmark 5), not the fingertip,
   so the cursor does not jump when you pinch.
 - Thumb + index pinch = left button down; open = button up (so hold = drag).
+- Thumb + middle pinch with index up = right click.
 - Three fingers: cursor freezes so you can hold still to switch mode.
 """
 import math
@@ -13,7 +14,7 @@ import config
 from gestures import hand_size
 from smoothing import OneEuroFilter
 
-THUMB_TIP, INDEX_MCP, INDEX_TIP = 4, 5, 8
+THUMB_TIP, INDEX_MCP, INDEX_TIP, MIDDLE_TIP = 4, 5, 8, 12
 
 
 def _dist(a, b):
@@ -28,6 +29,7 @@ class MouseController:
         self._fy = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
         self._button_down = False
         self._pinch_frames = 0
+        self._right_pinched = False
         self._last_pos = None
 
     def release(self):
@@ -36,6 +38,7 @@ class MouseController:
             self._out.mouse_up()
             self._button_down = False
         self._pinch_frames = 0
+        self._right_pinched = False
         self._fx.reset()
         self._fy.reset()
         self._last_pos = None
@@ -45,13 +48,14 @@ class MouseController:
         pts = hand.points
         size = hand_size(hand) or 1e-6
         pinch = _dist(pts[THUMB_TIP], pts[INDEX_TIP]) / size
+        right = _dist(pts[THUMB_TIP], pts[MIDDLE_TIP]) / size
 
         if not self._button_down and gesture == "three":
             self._pinch_frames = 0
             return None         # hold still so the mode switch can complete
 
         self._move(now, hand)
-        return self._buttons(pinch)
+        return self._buttons(pinch, right, fingers)
 
     def _move(self, now, hand):
         nx, ny = hand.norm(INDEX_MCP)
@@ -64,14 +68,25 @@ class MouseController:
             self._out.move(x, y)
             self._last_pos = (x, y)
 
-    def _buttons(self, pinch):
+    def _buttons(self, pinch, right, fingers):
         if self._button_down:
             if pinch > config.PINCH_OFF:
                 self._out.mouse_up()
                 self._button_down = False
             return None
 
-        if pinch < config.PINCH_ON:
+        # Right click: thumb on middle fingertip while the index stays up.
+        if fingers[1] and right < config.PINCH_ON and pinch > config.PINCH_ON:
+            if not self._right_pinched:
+                self._right_pinched = True
+                self._out.right_click()
+                return "Right click"
+            return None
+        if right > config.PINCH_OFF:
+            self._right_pinched = False
+
+        # Left button: thumb closer to the index tip than to the middle tip.
+        if pinch < config.PINCH_ON and pinch < right:
             self._pinch_frames += 1
             if self._pinch_frames >= config.PINCH_FRAMES:
                 self._pinch_frames = 0
