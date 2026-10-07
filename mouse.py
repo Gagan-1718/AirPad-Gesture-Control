@@ -124,9 +124,11 @@ class MouseController:
         speed = math.hypot(dx, dy) / max(now - rt, 1e-3)
         if speed < config.CURSOR_DEADZONE:
             return
+        fade = min((speed - config.CURSOR_DEADZONE) / config.CURSOR_DEADZONE, 1.0)
         t = (speed - config.CURSOR_ACCEL_START) / (config.CURSOR_ACCEL_FULL - config.CURSOR_ACCEL_START)
         t = min(max(t, 0.0), 1.0)
         gain = config.CURSOR_MIN_SPEED + (config.CURSOR_MAX_SPEED - config.CURSOR_MIN_SPEED) * t
+        gain *= fade                    # soft start: no jump when leaving the dead zone
         if slow:
             gain *= config.PRECISION_FACTOR
         x = min(max(self._pos[0] + dx * gain * self._screen_w, EDGE), self._screen_w - 1 - EDGE)

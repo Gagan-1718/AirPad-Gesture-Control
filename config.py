@@ -47,8 +47,9 @@ CURSOR_MIN_SPEED = 1.2      # screens per frame moved, for slow hand movement
 CURSOR_MAX_SPEED = 4.0      # ... for fast hand movement
 CURSOR_ACCEL_START = 0.15   # hand speed (frames / s) where acceleration starts
 CURSOR_ACCEL_FULL = 1.2     # hand speed where it reaches CURSOR_MAX_SPEED
-CURSOR_DEADZONE = 0.015     # hand speed below which the cursor holds still
-CURSOR_SMOOTH_MIN_CUTOFF = 1.2  # lower = steadier when still, more lag
+CURSOR_DEADZONE = 0.02      # hand speed below which the cursor holds still
+                            # (movement fades in over 1-2x this speed)
+CURSOR_SMOOTH_MIN_CUTOFF = 0.8  # lower = steadier when still, more lag
 CURSOR_SMOOTH_BETA = 0.03       # higher = less lag when moving fast
 PRECISION_ZONE = 0.5        # hand sizes: as thumb nears index tip, slow the cursor
 PRECISION_FACTOR = 0.35     # ...to this fraction, so clicks land where you aim

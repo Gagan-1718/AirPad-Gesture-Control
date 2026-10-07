@@ -1,3 +1,5 @@
+import random
+
 from gestures import fingers_up
 from helpers import FakeOutput, make_hand
 from mouse import MouseController
@@ -144,3 +146,12 @@ def test_click_does_not_drag_the_cursor():
     run(MouseController(out), hands)
     down = out.log.index(("mouse_down",))
     assert not [e for e in out.log[down:] if e[0] == "move"]
+
+
+def test_still_hand_does_not_jitter_the_cursor():
+    random.seed(1)
+    out = FakeOutput()
+    hands = [point(cx=320 + random.gauss(0, 1), cy=400 + random.gauss(0, 1)) for _ in range(90)]
+    run(MouseController(out), hands)
+    xs = [e[1] for e in moves(out)] or [1500]
+    assert max(xs) - min(xs) <= 6
