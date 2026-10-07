@@ -57,3 +57,17 @@ def test_release_lets_go_of_a_dragged_button():
     run(mouse, [pinch_hand()] * 4)
     mouse.release()
     assert out.events() == [("mouse_down",), ("mouse_up",)]
+
+
+def test_pointing_with_thumb_on_curled_middle_finger_does_not_click():
+    out = FakeOutput()
+    run(MouseController(out), [make_hand((1, 0, 0, 0), cx=250 + 3 * k) for k in range(30)])
+    assert out.events() == []
+
+
+def test_fist_does_not_click():
+    out = FakeOutput()
+    fist = make_hand((0, 0, 0, 0))
+    fist.points[4] = (300, 305)     # thumb right next to the curled index tip
+    run(MouseController(out), [fist] * 10, gesture="fist")
+    assert out.events() == []

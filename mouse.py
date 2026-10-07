@@ -14,11 +14,21 @@ import config
 from gestures import hand_size
 from smoothing import OneEuroFilter
 
-THUMB_TIP, INDEX_MCP, INDEX_TIP, MIDDLE_TIP = 4, 5, 8, 12
+WRIST, THUMB_TIP, INDEX_MCP = 0, 4, 5
+INDEX_PIP, INDEX_TIP, MIDDLE_PIP, MIDDLE_TIP = 6, 8, 10, 12
 
 
 def _dist(a, b):
     return math.hypot(a[0] - b[0], a[1] - b[1])
+
+
+def _reaching(pts, tip, pip):
+    """True if the finger is out towards the thumb, not curled into the palm.
+
+    Stops a fist (or a pointing hand with the thumb resting on the curled
+    middle finger) from counting as a pinch.
+    """
+    return _dist(pts[tip], pts[WRIST]) > config.PINCH_MIN_REACH * _dist(pts[pip], pts[WRIST])
 
 
 class MouseController:
@@ -49,6 +59,10 @@ class MouseController:
         size = hand_size(hand) or 1e-6
         pinch = _dist(pts[THUMB_TIP], pts[INDEX_TIP]) / size
         right = _dist(pts[THUMB_TIP], pts[MIDDLE_TIP]) / size
+        if not _reaching(pts, INDEX_TIP, INDEX_PIP):
+            pinch = max(pinch, config.PINCH_OFF + 1e-3)   # curled: not a pinch
+        if not _reaching(pts, MIDDLE_TIP, MIDDLE_PIP):
+            right = max(right, config.PINCH_OFF + 1e-3)
 
         if not self._button_down and gesture == "three":
             self._pinch_frames = 0

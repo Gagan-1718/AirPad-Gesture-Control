@@ -73,6 +73,8 @@ MOUSE_SMOOTH_BETA = 0.01       # higher = less lag when moving fast
 PINCH_ON = 0.25             # hand sizes between fingertips to count as a pinch
 PINCH_OFF = 0.40            # must open past this to release (prevents flicker)
 PINCH_FRAMES = 2            # consecutive pinch frames before clicking
+PINCH_MIN_REACH = 0.75      # pinching finger's tip-to-wrist / PIP-to-wrist; below
+                            # this it is curled into a fist, not pinching
 
 # --- Modes --------------------------------------------------------------------
 MODES = ["media", "slides", "pdf", "mouse", "game"]
