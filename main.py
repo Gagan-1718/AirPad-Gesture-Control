@@ -31,6 +31,8 @@ def run():
             if not ok:
                 print("Camera stopped delivering frames.")
                 break
+            if config.MIRROR:
+                frame = cv2.flip(frame, 1)
             cv2.imshow(config.WINDOW_NAME, frame)
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
