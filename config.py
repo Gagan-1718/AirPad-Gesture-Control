@@ -8,13 +8,15 @@ CAMERA_INDEX = 0
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 CAMERA_FPS = 30
-MIRROR = True               # flip like a mirror so moving right means your right
+MIRROR = True               # flip like a mirror so "swipe right" means your right
 
 # --- CPU budget ---------------------------------------------------------------
-PROCESS_FPS = 15            # hand-tracking rate while a hand is visible
+PROCESS_FPS = 30            # hand-tracking rate while a hand is visible
 IDLE_FPS = 3                # rate when no hand has been seen for IDLE_AFTER_S
 IDLE_AFTER_S = 2.0
-SHOW_PREVIEW = True         # start with the camera preview on ('v' toggles)
+
+# --- Preview window -------------------------------------------------------------
+SHOW_PREVIEW = True         # 'v' toggles between preview and a tiny status panel
 
 # --- Hand model (MediaPipe Tasks HandLandmarker) -------------------------------
 MODEL_PATH = os.path.join(BASE_DIR, "models", "hand_landmarker.task")
@@ -27,62 +29,47 @@ MIN_TRACKING_CONFIDENCE = 0.6
 MIN_HAND_SIZE = 0.05        # frame-height fraction; smaller hands (far away /
                             # people in the background) are ignored
 
-# --- Finger detection ---------------------------------------------------------
+# --- Pose detection -----------------------------------------------------------
 # A finger is "up" when tip-to-wrist distance > ratio * PIP-to-wrist distance.
-# Rotation-independent, unlike comparing raw y values.
 FINGER_EXTENDED_RATIO = 1.15
 THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
 THUMB_VERTICAL = 0.45       # hand sizes the thumb tip must be above / below its
                             # base for thumbs-up / thumbs-down
-
-# --- Stability filter (gesture must win `required` of the last `window` frames)
-STABILITY_WINDOW = 5
+STABILITY_WINDOW = 5        # a pose counts once it wins 4 of the last 5 frames
 STABILITY_REQUIRED = 4
-GAME_STABILITY_WINDOW = 3   # game mode trades a little accuracy for speed
-GAME_STABILITY_REQUIRED = 2
-
-# --- Stillness (static gestures only fire while the hand is roughly still) ----
 STILL_WINDOW_S = 0.25
-STILL_THRESHOLD = 0.04      # frame fraction the wrist may wander in that window
+STILL_THRESHOLD = 0.04      # frame fraction the wrist may wander and count as still
 
-# --- Cooldowns & holds ----------------------------------------------------------
-GESTURE_COOLDOWN_S = 0.8
-PLAYPAUSE_HOLD_S = 0.3      # palm must be held still briefly (avoids firing
-                            # when you raise an open hand to swipe)
-VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
-JUMP_COOLDOWN_S = 0.3       # game needs fast repeat jumps
-MODE_SWITCH_HOLD_S = 1.5
-
-# --- Swipes ---------------------------------------------------------------------
-SWIPE_WINDOW_S = 0.4
-SWIPE_THRESHOLD = 0.25      # frame-width fraction the wrist must travel
-SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
-SWIPE_ARM_S = 0.2           # ignore movement right after a hand appears
-SWIPE_COOLDOWN_S = 1.0      # applies to both directions
-SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
-SWIPE_STATIC_BLOCK_S = 0.6  # no static gestures right after a swipe
-
-# --- PDF mode -------------------------------------------------------------------
-PDF_SCROLL_STEP = 120       # mouse-wheel units per repeat (120 = one notch)
-PDF_SCROLL_REPEAT_S = 0.15  # hold index / two fingers to keep scrolling
-
-# --- Mouse mode -----------------------------------------------------------------
-MOUSE_PROCESS_FPS = 30      # smoother cursor; uses more CPU than other modes
+# --- Cursor -----------------------------------------------------------------------
 MOUSE_BOX = (0.25, 0.20, 0.75, 0.65)  # frame area (x0, y0, x1, y1) mapped to the
                                       # whole screen; smaller box = faster cursor
 MOUSE_SMOOTH_MIN_CUTOFF = 1.0  # lower = steadier cursor when still, more lag
 MOUSE_SMOOTH_BETA = 0.01       # higher = less lag when moving fast
+
+# --- Clicks (pinches) -------------------------------------------------------------
 PINCH_ON = 0.25             # hand sizes between fingertips to count as a pinch
 PINCH_OFF = 0.40            # must open past this to release (prevents flicker)
 PINCH_FRAMES = 2            # consecutive pinch frames before clicking
 PINCH_MIN_REACH = 0.75      # pinching finger's tip-to-wrist / PIP-to-wrist; below
                             # this it is curled into a fist, not pinching
+
+# --- Scrolling (two fingers up, move hand up / down) ---------------------------
 MOUSE_SCROLL_GAIN = 4000    # wheel units per frame-height of hand movement
 MOUSE_SCROLL_DEADZONE = 0.004  # ignore tiny hand jitter while scrolling
 
-# --- Modes --------------------------------------------------------------------
-MODES = ["media", "slides", "pdf", "mouse", "game"]   # keys 1-5 jump directly
-START_MODE = "media"
+# --- Media -------------------------------------------------------------------------
+PLAYPAUSE_HOLD_S = 0.3      # open palm held still this long = play / pause
+VOLUME_REPEAT_S = 0.25      # thumbs up / down: one volume step per this interval
+GESTURE_COOLDOWN_S = 0.8
+
+# --- Swipes ---------------------------------------------------------------------
+SWIPE_WINDOW_S = 0.4
+SWIPE_THRESHOLD = 0.25      # frame-width fraction the hand must travel
+SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
+SWIPE_ARM_S = 0.2           # ignore movement right after a hand appears
+SWIPE_COOLDOWN_S = 1.0      # applies to both directions
+SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
+SWIPE_STATIC_BLOCK_S = 0.6  # no palm / thumb actions right after a swipe
 
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"

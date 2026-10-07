@@ -1,8 +1,7 @@
-"""AirPad: control your laptop with hand gestures.
+"""AirPad: use your laptop with hand gestures, like an air touchpad.
 
-Keys (with the AirPad window focused): 1-5 = pick mode, v = toggle preview,
-q / Esc = quit.
-Run with --dry-run to see gestures without sending any key presses.
+Keys (with the AirPad window focused): v = toggle preview, q / Esc = quit.
+Run with --dry-run to see gestures without sending any input.
 """
 import argparse
 import ctypes
@@ -26,17 +25,6 @@ YELLOW = (0, 220, 255)
 GREY = (160, 160, 160)
 
 
-
-def mode_title(mode):
-    return f"{config.MODES.index(mode) + 1} {'PDF' if mode == 'pdf' else mode.title()}"
-
-
-def stability_for(mode):
-    if mode == "game":
-        return config.GAME_STABILITY_WINDOW, config.GAME_STABILITY_REQUIRED
-    return config.STABILITY_WINDOW, config.STABILITY_REQUIRED
-
-
 def text(img, msg, org, color=WHITE, scale=0.6, thickness=1):
     cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), thickness + 2, cv2.LINE_AA)
     cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness, cv2.LINE_AA)
@@ -52,27 +40,23 @@ def draw_hand(img, hand):
 
 def draw_overlay(img, state):
     h, w = img.shape[:2]
-    if state["mode"] == "mouse":
-        x0, y0, x1, y1 = config.MOUSE_BOX
-        cv2.rectangle(img, (int(x0 * w), int(y0 * h)), (int(x1 * w), int(y1 * h)), YELLOW, 1)
-    text(img, f"Mode: {mode_title(state['mode'])}", (10, 28), YELLOW, 0.8, 2)
     text(img, f"{state['fps']:.0f} fps{'  IDLE' if state['idle'] else ''}", (w - 140, 28), GREY)
     if state["fingers"] is not None:
-        text(img, f"Gesture: {state['gesture']}", (10, 58))
-        text(img, "Fingers: " + "".join(map(str, state["fingers"])), (10, 84), GREY, 0.5)
+        text(img, f"Gesture: {state['gesture']}", (10, 28), YELLOW)
+        text(img, "Fingers: " + "".join(map(str, state["fingers"])), (10, 54), GREY, 0.5)
     if state["action"]:
         text(img, state["action"], (10, h - 50), GREEN, 0.9, 2)
     if state["hold"] > 0:
         cv2.rectangle(img, (10, h - 30), (10 + int((w - 20) * state["hold"]), h - 18), YELLOW, -1)
         cv2.rectangle(img, (10, h - 30), (w - 10, h - 18), WHITE, 1)
-    text(img, "1-5: mode  v: preview  q: quit", (w - 255, h - 8), GREY, 0.45)
+    text(img, "v: preview  q: quit", (w - 175, h - 8), GREY, 0.45)
 
 
 def status_panel(state):
     """Tiny window shown when the preview is off (keeps key handling alive)."""
-    img = np.zeros((70, 320, 3), np.uint8)
-    text(img, f"Mode: {mode_title(state['mode'])}", (10, 28), YELLOW, 0.7, 2)
-    text(img, state["action"] or ("idle" if state["idle"] else state["gesture"]), (10, 56), GREEN, 0.55)
+    img = np.zeros((60, 320, 3), np.uint8)
+    msg = state["action"] or ("idle" if state["idle"] else state["gesture"] or "no hand")
+    text(img, f"AirPad: {msg}", (10, 36), GREEN, 0.6)
     return img
 
 
@@ -84,9 +68,8 @@ def run(args):
     tracker = HandTracker()
     controller = GestureController(output)
     mouse = MouseController(output)
-    stability = StabilityFilter(*stability_for(controller.mode))
+    stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
     motion = MotionTracker()
-    mode = controller.mode
 
     show_preview = config.SHOW_PREVIEW
     cv2.namedWindow(config.WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
@@ -96,16 +79,13 @@ def run(args):
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
     action, action_until = "", 0.0
     shown = False
+    print("AirPad running. Focus the AirPad window and press q to quit.")
+
     try:
         while True:
             now = time.monotonic()
             idle = now - last_hand_seen > config.IDLE_AFTER_S
-            if idle:
-                interval = 1.0 / config.IDLE_FPS
-            elif controller.mode == "mouse":
-                interval = 1.0 / config.MOUSE_PROCESS_FPS
-            else:
-                interval = 1.0 / config.PROCESS_FPS
+            interval = 1.0 / (config.IDLE_FPS if idle else config.PROCESS_FPS)
             if now - last_process < interval:
                 key = cv2.waitKey(5) & 0xFF       # rest until the next frame is due
             else:
@@ -116,40 +96,34 @@ def run(args):
                 now = last_process = time.monotonic()
                 if config.MIRROR:
                     frame = cv2.flip(frame, 1)
+
                 hand = tracker.process(frame)
                 if hand is not None and hand_size(hand) < config.MIN_HAND_SIZE * hand.frame_h:
                     hand = None         # too far away to trust
+
                 fingers, gesture_name = None, ""
                 if hand is not None:
                     last_hand_seen = now
                     had_hand = True
                     fingers = fingers_up(hand)
                     raw = classify(hand, fingers)
-                    stable = stability.update(raw)
+                    pose = stability.update(raw)
                     motion.update(now, *hand.norm(0), raw)
                     swipe = motion.detect_swipe(now)
                     if swipe:
                         motion.clear_history()
-                        swipe = swipe[0]
-                    fired = controller.update(now, stable, motion.is_still(now), swipe)
-                    if controller.mode == "mouse":
-                        swipe = None
-                        fired = fired or mouse.update(now, hand, stable, fingers)
-                    gesture_name = DISPLAY_NAMES.get(swipe or stable, "...")
+                    fired = controller.update(now, pose, motion.is_still(now), swipe)
+                    fired = mouse.update(now, hand, pose, fingers) or fired
+                    gesture_name = DISPLAY_NAMES.get(pose, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
                         if fired != "Scroll":   # scrolling fires every frame
                             print(fired)
-                elif had_hand:              # disarm: hand left, reset everything
+                elif had_hand:              # hand left: let go of everything
                     had_hand = False
                     stability.reset()
                     motion.reset()
                     controller.hand_lost()
-                    mouse.release()
-
-                if controller.mode != mode:
-                    mode = controller.mode
-                    stability.configure(*stability_for(mode))
                     mouse.release()
 
                 fps_count += 1
@@ -159,7 +133,7 @@ def run(args):
                 state = {
                     "fps": fps, "idle": idle, "fingers": fingers, "gesture": gesture_name,
                     "action": action if now < action_until else "",
-                    "mode": controller.mode, "hold": controller.hold_progress,
+                    "hold": controller.hold_progress,
                 }
                 if show_preview:
                     if hand is not None:
@@ -175,9 +149,6 @@ def run(args):
                 break
             if key == ord("v"):
                 show_preview = not show_preview
-            if ord("1") <= key < ord("1") + len(config.MODES):
-                controller.set_mode(config.MODES[key - ord("1")])
-                action, action_until = f"Mode: {mode_title(controller.mode)}", time.monotonic() + config.ACTION_FLASH_S
             if shown and cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break               # window closed with the X button
     finally:
@@ -190,9 +161,9 @@ def run(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Control your laptop with hand gestures.")
+    parser = argparse.ArgumentParser(description="Use your laptop with hand gestures.")
     parser.add_argument("--camera", type=int, default=config.CAMERA_INDEX, help="camera index")
-    parser.add_argument("--dry-run", action="store_true", help="print actions instead of pressing keys")
+    parser.add_argument("--dry-run", action="store_true", help="print actions instead of sending input")
     run(parser.parse_args())
 
 

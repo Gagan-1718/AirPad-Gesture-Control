@@ -1,4 +1,4 @@
-"""Gesture recognition: finger states, static gestures and hand motion."""
+"""Hand poses (finger states), swipes and stillness."""
 import math
 from collections import Counter, deque
 
@@ -28,9 +28,7 @@ DISPLAY_NAMES = {
     "three": "Three fingers",
     "thumb_up": "Thumbs up",
     "thumb_down": "Thumbs down",
-    "other": "Unknown",
-    "swipe_left": "Swipe left",
-    "swipe_right": "Swipe right",
+    "other": "Other",
 }
 
 
