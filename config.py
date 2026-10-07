@@ -69,7 +69,8 @@ SCROLL_NATURAL = True       # True: page follows your hand, like a touchpad / ph
 
 # --- Media -------------------------------------------------------------------------
 PLAYPAUSE_HOLD_S = 0.3      # open palm held still this long = play / pause
-VOLUME_REPEAT_S = 0.25      # thumbs up / down: one volume step per this interval
+VOLUME_HOLD_S = 0.25        # thumbs up / down must be held this long first
+VOLUME_REPEAT_S = 0.25      # then one volume step per this interval
 GESTURE_COOLDOWN_S = 0.8
 
 # --- Swipes ---------------------------------------------------------------------

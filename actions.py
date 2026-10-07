@@ -112,9 +112,9 @@ SWIPE_POSES = {pose for pose, _ in SWIPE_BINDINGS}
 
 STATIC_BINDINGS = {
     "palm": Binding(press("playpause"), "Play / Pause", hold_s=config.PLAYPAUSE_HOLD_S),
-    "thumb_up": Binding(press("volumeup"), "Volume up",
+    "thumb_up": Binding(press("volumeup"), "Volume up", hold_s=config.VOLUME_HOLD_S,
                         repeat_s=config.VOLUME_REPEAT_S, require_still=False),
-    "thumb_down": Binding(press("volumedown"), "Volume down",
+    "thumb_down": Binding(press("volumedown"), "Volume down", hold_s=config.VOLUME_HOLD_S,
                           repeat_s=config.VOLUME_REPEAT_S, require_still=False),
 }
 

@@ -112,3 +112,9 @@ def test_three_finger_swipe_switches_apps():
     ctrl = GestureController(out)
     assert ctrl.update(1.0, None, False, ("swipe_right", "three")) == "Switch app"
     assert out.log == [("hotkey", ("alt", "tab"))]
+
+
+def test_brief_thumbs_up_does_not_change_the_volume():
+    out = FakeOutput()
+    feed(GestureController(out), ["thumb_up"] * 5 + ["fist"] * 10)
+    assert out.keys() == []
