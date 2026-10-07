@@ -34,6 +34,14 @@ where you aim.
 | ✌️ Two fingers | Browser forward (Alt+→) | Browser back (Alt+←) |
 | 🤟 Three fingers (index + middle + ring) | Switch to last app (Alt+Tab) | Switch to last app |
 
+### Media
+
+| Gesture | Action |
+|---|---|
+| ✋ Open palm, hold still for ½ s | Play / Pause (a bar fills while you hold) |
+| 👍 Thumbs up, hold | Volume up (repeats while held) |
+| 👎 Thumbs down, hold | Volume down (repeats while held) |
+
 ## Install
 
 Python 3.10 or newer (tested on 3.14 with MediaPipe 1.1).
