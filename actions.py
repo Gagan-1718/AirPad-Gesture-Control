@@ -1,8 +1,11 @@
 """Maps gestures to key presses per mode.
 
+Firing rules:
 - One-shot actions (play/pause, swipes) fire once, then "latch": holding the
   gesture does not repeat it. Change gesture or remove the hand to re-arm.
 - Repeat actions (volume) keep firing every `repeat_s` while held.
+- Static gestures need the hand roughly still (unless `require_still=False`),
+  so moving your hand for a swipe does not also fire a static gesture.
 """
 from dataclasses import dataclass
 
@@ -19,8 +22,10 @@ pyautogui.FAILSAFE = True    # slam the mouse into a corner to abort
 class Binding:
     key: str
     label: str
+    hold_s: float = 0.0             # gesture must be held (still) this long
     cooldown_s: float = config.GESTURE_COOLDOWN_S
     repeat_s: float | None = None   # repeat while held instead of latching
+    require_still: bool = True
 
 
 SWIPE_BINDINGS = {
@@ -32,7 +37,7 @@ SWIPE_BINDINGS = {
 
 STATIC_BINDINGS = {
     "media": {
-        "palm": Binding("playpause", "Play / Pause"),
+        "palm": Binding("playpause", "Play / Pause", hold_s=config.PLAYPAUSE_HOLD_S),
         "one": Binding("volumeup", "Volume up", repeat_s=config.VOLUME_REPEAT_S),
         "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
     },
@@ -50,19 +55,33 @@ class GestureController:
         self.mode = config.START_MODE
         self._cooldowns = Cooldowns()
         self._latched = None          # gesture already used; ignored until it changes
+        self._hold_label = None
+        self._hold_start = 0.0
         self._last_swipe = None       # (direction, time)
 
     def hand_lost(self):
         self._latched = None
+        self._hold_label = None
 
-    def update(self, now, gesture, swipe=None):
-        """Feed one processed frame. Returns the fired action label, or None."""
+    def update(self, now, gesture, still, swipe):
+        """Feed one processed frame. Returns the fired action label, or None.
+
+        gesture: stable static gesture (or None); still: hand roughly still;
+        swipe: "swipe_left" / "swipe_right" / None.
+        """
         if swipe:
             return self._handle_swipe(now, swipe)
+
         if gesture is not None and gesture != self._latched:
             self._latched = None
+        self._update_hold(now, gesture, still)
+
+        if gesture is None or gesture == self._latched:
+            return None
+        held = now - self._hold_start
+
         binding = STATIC_BINDINGS[self.mode].get(gesture)
-        if binding is None or gesture == self._latched or not self._cooldowns.ready(gesture, now):
+        if binding is None or held < binding.hold_s or not self._cooldowns.ready(gesture, now):
             return None
         self._send(binding.key)
         if binding.repeat_s is not None:
@@ -71,6 +90,16 @@ class GestureController:
             self._cooldowns.trigger(gesture, now, binding.cooldown_s)
             self._latched = gesture
         return binding.label
+
+    def _update_hold(self, now, gesture, still):
+        """Track how long `gesture` has been held (and still, if required)."""
+        if gesture != self._hold_label:
+            self._hold_label = gesture
+            self._hold_start = now
+            return
+        binding = STATIC_BINDINGS[self.mode].get(gesture)
+        if binding is not None and binding.require_still and not still:
+            self._hold_start = now
 
     def _handle_swipe(self, now, swipe):
         if self._last_swipe is not None:

@@ -98,7 +98,7 @@ def run(args):
                     swipe = motion.detect_swipe(now)
                     if swipe:
                         motion.clear_history()
-                    fired = controller.update(now, stable, swipe)
+                    fired = controller.update(now, stable, motion.is_still(now), swipe)
                     gesture_name = DISPLAY_NAMES.get(swipe or stable, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S

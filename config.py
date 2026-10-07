@@ -40,8 +40,10 @@ STABILITY_REQUIRED = 4
 STILL_WINDOW_S = 0.25
 STILL_THRESHOLD = 0.04      # frame fraction the wrist may wander in that window
 
-# --- Cooldowns ------------------------------------------------------------------
+# --- Cooldowns & holds ----------------------------------------------------------
 GESTURE_COOLDOWN_S = 0.8
+PLAYPAUSE_HOLD_S = 0.3      # palm must be held still briefly (avoids firing
+                            # when you raise an open hand to swipe)
 VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
 
 # --- Swipes ---------------------------------------------------------------------
