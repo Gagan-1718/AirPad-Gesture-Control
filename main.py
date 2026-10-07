@@ -4,6 +4,7 @@ Keys (with the AirPad window focused): q / Esc = quit.
 """
 import argparse
 import sys
+import time
 
 import cv2
 
@@ -11,6 +12,7 @@ import config
 from tracker import HAND_CONNECTIONS, HandTracker
 
 GREEN = (80, 220, 100)
+WHITE = (255, 255, 255)
 GREY = (160, 160, 160)
 
 
@@ -28,6 +30,11 @@ def open_camera(index):
     return cap
 
 
+def text(img, msg, org, color=WHITE, scale=0.6, thickness=1):
+    cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), thickness + 2, cv2.LINE_AA)
+    cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness, cv2.LINE_AA)
+
+
 def draw_hand(img, hand):
     pts = [(int(x), int(y)) for x, y in hand.points]
     for a, b in HAND_CONNECTIONS:
@@ -39,6 +46,7 @@ def draw_hand(img, hand):
 def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
+    fps, fps_count, fps_start = 0.0, 0, time.monotonic()
     try:
         while True:
             ok, frame = cap.read()
@@ -50,6 +58,12 @@ def run(args):
             hand = tracker.process(frame)
             if hand is not None:
                 draw_hand(frame, hand)
+
+            now = time.monotonic()
+            fps_count += 1
+            if now - fps_start >= 1.0:
+                fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
+            text(frame, f"{fps:.0f} fps", (frame.shape[1] - 90, 28), GREY)
             cv2.imshow(config.WINDOW_NAME, frame)
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
