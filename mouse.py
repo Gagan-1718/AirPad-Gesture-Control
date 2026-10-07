@@ -1,9 +1,10 @@
-"""Mouse mode: move the cursor with your hand, pinch to click.
+"""Mouse mode: move the cursor with your hand, pinch to click, two fingers to scroll.
 
 - Cursor follows the index-finger knuckle (landmark 5), not the fingertip,
   so the cursor does not jump when you pinch.
 - Thumb + index pinch = left button down; open = button up (so hold = drag).
 - Thumb + middle pinch with index up = right click.
+- Two fingers up (index + middle): cursor freezes, move hand up/down to scroll.
 - Three fingers: cursor freezes so you can hold still to switch mode.
 """
 import math
@@ -40,6 +41,8 @@ class MouseController:
         self._button_down = False
         self._pinch_frames = 0
         self._right_pinched = False
+        self._scroll_y = None
+        self._scroll_rest = 0.0
         self._last_pos = None
 
     def release(self):
@@ -49,6 +52,8 @@ class MouseController:
             self._button_down = False
         self._pinch_frames = 0
         self._right_pinched = False
+        self._scroll_y = None
+        self._scroll_rest = 0.0
         self._fx.reset()
         self._fy.reset()
         self._last_pos = None
@@ -64,9 +69,13 @@ class MouseController:
         if not _reaching(pts, MIDDLE_TIP, MIDDLE_PIP):
             right = max(right, config.PINCH_OFF + 1e-3)
 
-        if not self._button_down and gesture == "three":
+        if not self._button_down and gesture in ("two", "three"):
             self._pinch_frames = 0
+            if gesture == "two":
+                return self._scroll(hand.norm(INDEX_MCP)[1])
+            self._scroll_y = None
             return None         # hold still so the mode switch can complete
+        self._scroll_y = None
 
         self._move(now, hand)
         return self._buttons(pinch, right, fingers)
@@ -110,3 +119,19 @@ class MouseController:
         else:
             self._pinch_frames = 0
         return None
+
+    def _scroll(self, y):
+        if self._scroll_y is None:
+            self._scroll_y = y
+            return None
+        dy = self._scroll_y - y         # hand moving up -> positive -> scroll up
+        self._scroll_y = y
+        if abs(dy) < config.MOUSE_SCROLL_DEADZONE:
+            return None
+        self._scroll_rest += dy * config.MOUSE_SCROLL_GAIN
+        amount = int(self._scroll_rest)
+        if amount == 0:
+            return None
+        self._scroll_rest -= amount
+        self._out.scroll(amount)
+        return "Scroll"

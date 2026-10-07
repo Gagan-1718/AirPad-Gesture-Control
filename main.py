@@ -140,7 +140,8 @@ def run(args):
                     gesture_name = DISPLAY_NAMES.get(swipe or stable, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
-                        print(fired)
+                        if fired != "Scroll":   # scrolling fires every frame
+                            print(fired)
                 elif had_hand:              # disarm: hand left, reset everything
                     had_hand = False
                     stability.reset()

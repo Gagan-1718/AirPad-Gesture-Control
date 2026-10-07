@@ -71,3 +71,11 @@ def test_fist_does_not_click():
     fist.points[4] = (300, 305)     # thumb right next to the curled index tip
     run(MouseController(out), [fist] * 10, gesture="fist")
     assert out.events() == []
+
+
+def test_two_fingers_scroll_and_freeze_the_cursor():
+    out = FakeOutput()
+    hands = [make_hand((1, 1, 0, 0), cy=400 - 4 * k) for k in range(20)]
+    run(MouseController(out), hands, gesture="two")
+    assert sum(e[1] for e in out.log if e[0] == "scroll") > 0
+    assert not [e for e in out.log if e[0] == "move"]
