@@ -26,6 +26,14 @@ The cursor speeds up with your hand: move slowly for precision, flick to cross
 the screen. It slows down as your fingers close in for a pinch, so clicks land
 where you aim.
 
+### Swipes (quick sideways movement)
+
+| Hand shape | Swipe right | Swipe left |
+|---|---|---|
+| ✋ Open palm | Next (→ key): slide, PDF page, photo | Previous (← key) |
+| ✌️ Two fingers | Browser forward (Alt+→) | Browser back (Alt+←) |
+| 🤟 Three fingers (index + middle + ring) | Switch to last app (Alt+Tab) | Switch to last app |
+
 ## Install
 
 Python 3.10 or newer (tested on 3.14 with MediaPipe 1.1).
