@@ -1,4 +1,4 @@
-"""Stability filter."""
+"""Stability filter and cooldown timers."""
 from collections import Counter, deque
 
 
@@ -19,3 +19,19 @@ class StabilityFilter:
 
     def reset(self):
         self._buf.clear()
+
+
+class Cooldowns:
+    """Per-key "not before" timestamps."""
+
+    def __init__(self):
+        self._until = {}
+
+    def ready(self, key, now):
+        return now >= self._until.get(key, 0.0)
+
+    def trigger(self, key, now, seconds):
+        self._until[key] = now + seconds
+
+    def reset(self):
+        self._until.clear()
