@@ -78,11 +78,11 @@ GESTURE_COOLDOWN_S = 0.8
 
 # --- Swipes ---------------------------------------------------------------------
 SWIPE_WINDOW_S = 0.4
-SWIPE_THRESHOLD = 0.25      # frame-width fraction the hand must travel
+SWIPE_THRESHOLD = 0.20      # frame-width fraction the hand must travel
 SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
 SWIPE_ARM_S = 0.2           # ignore movement right after a hand appears
-SWIPE_COOLDOWN_S = 1.0      # applies to both directions
-SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
+SWIPE_COOLDOWN_S = 0.7      # applies to both directions
+SWIPE_REVERSE_BLOCK_S = 1.2 # ignore the "return stroke" after a swipe
 SWIPE_STATIC_BLOCK_S = 0.6  # no palm / thumb actions right after a swipe
 
 # --- UI -----------------------------------------------------------------------
