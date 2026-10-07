@@ -11,7 +11,7 @@ import cv2
 
 import config
 from actions import GestureController, press_key
-from gestures import DISPLAY_NAMES, classify, fingers_up, hand_size
+from gestures import DISPLAY_NAMES, MotionTracker, classify, fingers_up, hand_size
 from smoothing import StabilityFilter
 from tracker import HAND_CONNECTIONS, HandTracker
 
@@ -63,6 +63,7 @@ def run(args):
     tracker = HandTracker()
     controller = GestureController(send)
     stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
+    motion = MotionTracker()
     last_process = 0.0
     last_hand_seen = time.monotonic()
     had_hand = False
@@ -93,14 +94,19 @@ def run(args):
                     had_hand = True
                     fingers = fingers_up(hand)
                     stable = stability.update(classify(fingers))
-                    gesture_name = DISPLAY_NAMES.get(stable, "...")
-                    fired = controller.update(now, stable)
+                    motion.update(now, *hand.norm(0))
+                    swipe = motion.detect_swipe(now)
+                    if swipe:
+                        motion.clear_history()
+                    fired = controller.update(now, stable, swipe)
+                    gesture_name = DISPLAY_NAMES.get(swipe or stable, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
                         print(fired)
                 elif had_hand:              # disarm: hand left, reset everything
                     had_hand = False
                     stability.reset()
+                    motion.reset()
                     controller.hand_lost()
 
                 fps_count += 1
