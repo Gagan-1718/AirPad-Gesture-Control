@@ -1,6 +1,6 @@
 import pytest
 
-from gestures import classify, fingers_up, hand_size
+from gestures import MotionTracker, classify, fingers_up, hand_size
 from helpers import make_hand
 
 
@@ -42,3 +42,33 @@ def test_detection_works_on_a_tilted_hand(angle):
 @pytest.mark.parametrize("thumb", ["in", "out"])
 def test_classify_ignores_the_thumb(fingers, pose, thumb):
     assert classify(fingers_up(make_hand(fingers, thumb))) == pose
+
+
+def track(motion, points, dt=1 / 15):
+    """Feed (x, y) wrist positions at 15 fps; return the last swipe seen."""
+    swipe = None
+    for i, (x, y) in enumerate(points, start=1):
+        motion.update(i * dt, x, y)
+        swipe = motion.detect_swipe(i * dt) or swipe
+    return swipe
+
+
+def move(x0, x1, frames, y0=0.5, y1=None):
+    y1 = y0 if y1 is None else y1
+    return [(x0 + (x1 - x0) * k / frames, y0 + (y1 - y0) * k / frames) for k in range(1, frames + 1)]
+
+
+def test_fast_move_right_is_a_swipe():
+    assert track(MotionTracker(), [(0.3, 0.5)] * 6 + move(0.3, 0.7, 4)) == "swipe_right"
+
+
+def test_fast_move_left_is_a_swipe():
+    assert track(MotionTracker(), [(0.7, 0.5)] * 6 + move(0.7, 0.3, 4)) == "swipe_left"
+
+
+def test_slow_move_is_not_a_swipe():
+    assert track(MotionTracker(), [(0.3, 0.5)] * 6 + move(0.3, 0.7, 30)) is None
+
+
+def test_diagonal_move_is_not_a_swipe():
+    assert track(MotionTracker(), [(0.3, 0.3)] * 6 + move(0.3, 0.6, 4, 0.3, 0.8)) is None
