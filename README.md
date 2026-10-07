@@ -25,6 +25,7 @@ pip install -r requirements.txt
 
 ```bash
 python main.py              # normal
+python main.py --dry-run    # print actions instead of pressing keys
 python main.py --camera 1   # use another webcam
 ```
 
