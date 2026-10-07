@@ -25,38 +25,37 @@ YELLOW = (0, 220, 255)
 GREY = (160, 160, 160)
 
 
-def text(img, msg, org, color=WHITE, scale=0.6, thickness=1):
+def text(img, msg, org, color=WHITE, scale=0.45, thickness=1):
     cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), thickness + 2, cv2.LINE_AA)
     cv2.putText(img, msg, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness, cv2.LINE_AA)
 
 
-def draw_hand(img, hand):
-    pts = [(int(x), int(y)) for x, y in hand.points]
+def draw_hand(img, hand, scale):
+    pts = [(int(x * scale), int(y * scale)) for x, y in hand.points]
     for a, b in HAND_CONNECTIONS:
-        cv2.line(img, pts[a], pts[b], GREY, 2, cv2.LINE_AA)
+        cv2.line(img, pts[a], pts[b], GREY, 1, cv2.LINE_AA)
     for p in pts:
-        cv2.circle(img, p, 4, GREEN, -1, cv2.LINE_AA)
+        cv2.circle(img, p, 2, GREEN, -1, cv2.LINE_AA)
 
 
 def draw_overlay(img, state):
     h, w = img.shape[:2]
-    text(img, f"{state['fps']:.0f} fps{'  IDLE' if state['idle'] else ''}", (w - 140, 28), GREY)
+    text(img, f"{state['fps']:.0f} fps{'  idle' if state['idle'] else ''}", (w - 85, 16), GREY, 0.4)
     if state["fingers"] is not None:
-        text(img, f"Gesture: {state['gesture']}", (10, 28), YELLOW)
-        text(img, "Fingers: " + "".join(map(str, state["fingers"])), (10, 54), GREY, 0.5)
+        text(img, state["gesture"], (8, 18), YELLOW, 0.5)
+        text(img, "".join(map(str, state["fingers"])), (8, 36), GREY, 0.4)
     if state["action"]:
-        text(img, state["action"], (10, h - 50), GREEN, 0.9, 2)
+        text(img, state["action"], (8, h - 26), GREEN, 0.6, 2)
     if state["hold"] > 0:
-        cv2.rectangle(img, (10, h - 30), (10 + int((w - 20) * state["hold"]), h - 18), YELLOW, -1)
-        cv2.rectangle(img, (10, h - 30), (w - 10, h - 18), WHITE, 1)
-    text(img, "v: preview  q: quit", (w - 175, h - 8), GREY, 0.45)
+        cv2.rectangle(img, (8, h - 16), (8 + int((w - 16) * state["hold"]), h - 10), YELLOW, -1)
+        cv2.rectangle(img, (8, h - 16), (w - 8, h - 10), WHITE, 1)
 
 
 def status_panel(state):
     """Tiny window shown when the preview is off (keeps key handling alive)."""
-    img = np.zeros((60, 320, 3), np.uint8)
+    img = np.zeros((44, 240, 3), np.uint8)
     msg = state["action"] or ("idle" if state["idle"] else state["gesture"] or "no hand")
-    text(img, f"AirPad: {msg}", (10, 36), GREEN, 0.6)
+    text(img, f"AirPad: {msg}", (8, 27), GREEN, 0.5)
     return img
 
 
@@ -135,12 +134,16 @@ def run(args):
                     "hold": controller.hold_progress,
                 }
                 if show_preview:
+                    s = config.PREVIEW_SCALE
+                    view = cv2.resize(frame, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
                     if hand is not None:
-                        draw_hand(frame, hand)
-                    draw_overlay(frame, state)
-                    cv2.imshow(config.WINDOW_NAME, frame)
+                        draw_hand(view, hand, s)
+                    draw_overlay(view, state)
+                    cv2.imshow(config.WINDOW_NAME, view)
                 else:
                     cv2.imshow(config.WINDOW_NAME, status_panel(state))
+                if not shown and config.PREVIEW_ON_TOP:
+                    cv2.setWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_TOPMOST, 1)
                 shown = True
                 key = cv2.waitKey(1) & 0xFF
 
