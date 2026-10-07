@@ -45,6 +45,14 @@ def draw_hand(img, hand):
         cv2.circle(img, p, 4, GREEN, -1, cv2.LINE_AA)
 
 
+def draw_overlay(img, state):
+    w = img.shape[1]
+    text(img, f"{state['fps']:.0f} fps{'  IDLE' if state['idle'] else ''}", (w - 140, 28), GREY)
+    if state["fingers"] is not None:
+        text(img, f"Gesture: {state['gesture']}", (10, 58))
+        text(img, "Fingers: " + "".join(map(str, state["fingers"])), (10, 84), GREY, 0.5)
+
+
 def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
@@ -71,20 +79,23 @@ def run(args):
                 hand = tracker.process(frame)
                 if hand is not None and hand_size(hand) < config.MIN_HAND_SIZE * hand.frame_h:
                     hand = None         # too far away to trust
+                fingers, gesture_name = None, ""
                 if hand is not None:
                     last_hand_seen = now
-                    draw_hand(frame, hand)
                     fingers = fingers_up(hand)
                     stable = stability.update(classify(fingers))
-                    text(frame, f"Gesture: {DISPLAY_NAMES.get(stable, '...')}", (10, 58))
-                    text(frame, "Fingers: " + "".join(map(str, fingers)), (10, 84), GREY, 0.5)
+                    gesture_name = DISPLAY_NAMES.get(stable, "...")
                 else:
                     stability.reset()
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
                     fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
-                text(frame, f"{fps:.0f} fps{'  IDLE' if idle else ''}", (frame.shape[1] - 140, 28), GREY)
+
+                state = {"fps": fps, "idle": idle, "fingers": fingers, "gesture": gesture_name}
+                if hand is not None:
+                    draw_hand(frame, hand)
+                draw_overlay(frame, state)
                 cv2.imshow(config.WINDOW_NAME, frame)
                 shown = True
             key = cv2.waitKey(1) & 0xFF
