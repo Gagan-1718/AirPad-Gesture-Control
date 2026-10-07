@@ -1,5 +1,9 @@
 # AirPad
 
+[![CI](https://github.com/Gagan-1718/AirPad-Gesture-Control/actions/workflows/ci.yml/badge.svg)](https://github.com/Gagan-1718/AirPad-Gesture-Control/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 **Your hand is the touchpad.** Use your laptop with hand gestures through your
 webcam: move the cursor, click, drag, scroll, flip slides and PDF pages, go back
 in the browser, switch apps and control media. One mode, always on, no switching.
