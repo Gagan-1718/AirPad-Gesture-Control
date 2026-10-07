@@ -1,4 +1,4 @@
-"""Maps gestures to key presses.
+"""Maps gestures to key presses per mode.
 
 - One-shot actions (play/pause, swipes) fire once, then "latch": holding the
   gesture does not repeat it. Change gesture or remove the hand to re-arm.
@@ -24,14 +24,19 @@ class Binding:
 
 
 SWIPE_BINDINGS = {
-    "swipe_right": Binding("nexttrack", "Next track"),
-    "swipe_left": Binding("prevtrack", "Previous track"),
+    "media": {"swipe_right": Binding("nexttrack", "Next track"),
+              "swipe_left": Binding("prevtrack", "Previous track")},
+    "slides": {"swipe_right": Binding("right", "Next slide"),
+               "swipe_left": Binding("left", "Previous slide")},
 }
 
 STATIC_BINDINGS = {
-    "palm": Binding("playpause", "Play / Pause"),
-    "one": Binding("volumeup", "Volume up", repeat_s=config.VOLUME_REPEAT_S),
-    "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
+    "media": {
+        "palm": Binding("playpause", "Play / Pause"),
+        "one": Binding("volumeup", "Volume up", repeat_s=config.VOLUME_REPEAT_S),
+        "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
+    },
+    "slides": {},
 }
 
 
@@ -42,6 +47,7 @@ def press_key(key):
 class GestureController:
     def __init__(self, send=press_key):
         self._send = send
+        self.mode = config.START_MODE
         self._cooldowns = Cooldowns()
         self._latched = None          # gesture already used; ignored until it changes
 
@@ -54,7 +60,7 @@ class GestureController:
             return self._handle_swipe(now, swipe)
         if gesture is not None and gesture != self._latched:
             self._latched = None
-        binding = STATIC_BINDINGS.get(gesture)
+        binding = STATIC_BINDINGS[self.mode].get(gesture)
         if binding is None or gesture == self._latched or not self._cooldowns.ready(gesture, now):
             return None
         self._send(binding.key)
@@ -66,7 +72,7 @@ class GestureController:
         return binding.label
 
     def _handle_swipe(self, now, swipe):
-        binding = SWIPE_BINDINGS.get(swipe)
+        binding = SWIPE_BINDINGS[self.mode].get(swipe)
         if binding is None or not self._cooldowns.ready("swipe", now):
             return None
         self._send(binding.key)

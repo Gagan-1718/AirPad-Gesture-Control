@@ -46,6 +46,10 @@ SWIPE_THRESHOLD = 0.25      # frame-width fraction the wrist must travel
 SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
 SWIPE_COOLDOWN_S = 1.0      # applies to both directions
 
+# --- Modes --------------------------------------------------------------------
+MODES = ["media", "slides"]
+START_MODE = "media"
+
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"
 ACTION_FLASH_S = 1.0

@@ -55,3 +55,13 @@ def test_swipes_share_a_cooldown():
     ctrl.update(1.5, None, "swipe_right")
     ctrl.update(2.1, None, "swipe_right")
     assert sent == ["nexttrack", "nexttrack"]
+
+
+def test_slides_mode_uses_arrow_keys():
+    sent = []
+    ctrl = GestureController(sent.append)
+    ctrl.mode = "slides"
+    ctrl.update(1.0, None, "swipe_right")
+    ctrl.update(2.5, None, "swipe_left")
+    feed(ctrl, ["palm"] * 15)
+    assert sent == ["right", "left"]
