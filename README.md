@@ -86,6 +86,22 @@ A small preview window stays on top of other windows. With it focused, **v**
 switches to a tiny status bar and back, and **q** or **Esc** quits. Emergency
 stop: slam the real mouse into a screen corner.
 
+## Tuning
+
+Every threshold is in `config.py`. Common fixes:
+
+| Problem | Setting |
+|---|---|
+| Cursor too slow / too fast | `CURSOR_MIN_SPEED` (precise moves), `CURSOR_MAX_SPEED` (flicks) |
+| Cursor shaky when still | raise `CURSOR_DEADZONE` or lower `CURSOR_SMOOTH_MIN_CUTOFF` |
+| Cursor lags behind | raise `CURSOR_SMOOTH_BETA` (e.g. 0.06) |
+| Clicks missed / too many | adjust `PINCH_ON` (lower = harder to click) |
+| Scroll too fast / wrong way | `SCROLL_GAIN`, `SCROLL_NATURAL` |
+| Swipes not detected | `SWIPE_THRESHOLD = 0.15` |
+| Gestures flicker | `STABILITY_WINDOW = 5`, `STABILITY_REQUIRED = 4` |
+| Fingers misread as up/down | adjust `FINGER_EXTENDED_RATIO` (watch the digits under the pose name) |
+| Play/pause triggers by accident | raise `PLAYPAUSE_HOLD_S` |
+
 ## Tests
 
 ```bash
