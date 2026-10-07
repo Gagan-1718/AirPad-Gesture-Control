@@ -1,5 +1,7 @@
 # AirControl — Gesture-Controlled Laptop (2-Day Build Plan)
 
+> "AirControl" was the working title during planning. The project ships as **AirPad**.
+
 Control music, slides, and games with hand gestures through your webcam.
 Designed to be **lightweight** (no laptop overheating) and **accurate** (no false triggers).
 
