@@ -92,3 +92,10 @@ def test_palm_held_after_a_swipe_does_not_toggle_play_pause():
     frames = ["palm"] * 3 + [("palm", False, "swipe_right")] + ["palm"] * 30
     feed(GestureController(sent.append), frames)
     assert sent == ["nexttrack"]
+
+
+def test_blurred_swipe_still_latches_the_final_pose():
+    sent = []
+    frames = ["palm"] * 3 + [(None, False, "swipe_right")] + ["palm"] * 30
+    feed(GestureController(sent.append), frames)
+    assert sent == ["nexttrack"]

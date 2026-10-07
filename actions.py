@@ -49,6 +49,9 @@ def press_key(key):
     pyautogui.press(key)
 
 
+_LATCH_NEXT = object()   # latch whichever gesture is seen next
+
+
 class GestureController:
     def __init__(self, send=press_key):
         self._send = send
@@ -73,7 +76,9 @@ class GestureController:
         if swipe:
             return self._handle_swipe(now, gesture, swipe)
 
-        if gesture is not None and gesture != self._latched:
+        if gesture is not None and self._latched is _LATCH_NEXT:
+            self._latched = gesture
+        elif gesture is not None and gesture != self._latched:
             self._latched = None
         self._update_hold(now, gesture, still)
 
@@ -104,7 +109,7 @@ class GestureController:
 
     def _handle_swipe(self, now, gesture, swipe):
         # Whatever shape the hand ends the swipe in must not fire on its own.
-        self._latched = gesture
+        self._latched = gesture if gesture is not None else _LATCH_NEXT
         self._hold_label = None
         self._static_block_until = now + config.SWIPE_STATIC_BLOCK_S
 
