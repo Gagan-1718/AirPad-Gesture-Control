@@ -1,7 +1,8 @@
 """Maps gestures to key presses.
 
-One-shot actions fire once, then "latch": holding the gesture does not
-repeat it. Change gesture or remove the hand to re-arm.
+- One-shot actions (play/pause) fire once, then "latch": holding the
+  gesture does not repeat it. Change gesture or remove the hand to re-arm.
+- Repeat actions (volume) keep firing every `repeat_s` while held.
 """
 from dataclasses import dataclass
 
@@ -19,12 +20,13 @@ class Binding:
     key: str
     label: str
     cooldown_s: float = config.GESTURE_COOLDOWN_S
+    repeat_s: float | None = None   # repeat while held instead of latching
 
 
 BINDINGS = {
     "palm": Binding("playpause", "Play / Pause"),
-    "one": Binding("volumeup", "Volume up"),
-    "two": Binding("volumedown", "Volume down"),
+    "one": Binding("volumeup", "Volume up", repeat_s=config.VOLUME_REPEAT_S),
+    "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
 }
 
 
@@ -49,6 +51,9 @@ class GestureController:
         if binding is None or gesture == self._latched or not self._cooldowns.ready(gesture, now):
             return None
         self._send(binding.key)
-        self._cooldowns.trigger(gesture, now, binding.cooldown_s)
-        self._latched = gesture
+        if binding.repeat_s is not None:
+            self._cooldowns.trigger(gesture, now, binding.repeat_s)
+        else:
+            self._cooldowns.trigger(gesture, now, binding.cooldown_s)
+            self._latched = gesture
         return binding.label

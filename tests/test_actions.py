@@ -33,3 +33,9 @@ def test_palm_fires_again_after_changing_pose():
     sent = []
     feed(GestureController(sent.append), ["palm"] * 15 + ["fist"] * 15 + ["palm"] * 15)
     assert sent == ["playpause", "playpause"]
+
+
+def test_volume_repeats_while_held():
+    sent = []
+    feed(GestureController(sent.append), ["one"] * 15)      # 1 second
+    assert sent == ["volumeup"] * 4
