@@ -14,3 +14,8 @@ def test_hand_size_is_wrist_to_middle_finger_base():
 ])
 def test_fingers_up_reads_each_finger(fingers):
     assert fingers_up(make_hand(fingers))[1:] == list(fingers)
+
+
+def test_thumb_spread_and_tucked():
+    assert fingers_up(make_hand(thumb="out"))[0] == 1
+    assert fingers_up(make_hand(thumb="in"))[0] == 0
