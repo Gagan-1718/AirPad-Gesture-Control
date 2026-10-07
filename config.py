@@ -36,8 +36,8 @@ FINGER_EXTENDED_RATIO = 1.15
 THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
 THUMB_VERTICAL = 0.45       # hand sizes the thumb tip must be above / below its
                             # base for thumbs-up / thumbs-down
-STABILITY_WINDOW = 5        # a pose counts once it wins 4 of the last 5 frames
-STABILITY_REQUIRED = 4
+STABILITY_WINDOW = 4        # a pose counts once it wins 3 of the last 4 frames
+STABILITY_REQUIRED = 3      # (~100 ms at 30 fps)
 STILL_WINDOW_S = 0.25
 STILL_THRESHOLD = 0.04      # frame fraction the wrist may wander and count as still
 
