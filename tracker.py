@@ -24,6 +24,11 @@ class Hand:
     handedness: str     # "Left" / "Right" (correct for a mirrored frame)
     score: float
 
+    def norm(self, index):
+        """Landmark position as a fraction of the frame (0..1)."""
+        x, y = self.points[index]
+        return x / self.frame_w, y / self.frame_h
+
 
 def ensure_model(path=config.MODEL_PATH, url=config.MODEL_URL):
     if os.path.exists(path):
