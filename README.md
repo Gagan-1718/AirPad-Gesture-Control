@@ -4,6 +4,14 @@ Your hand is the touchpad. Control your laptop with webcam hand gestures.
 
 > Work in progress. See the [project plan](docs/PROJECT_PLAN.md) for the roadmap.
 
+## Gestures
+
+| Gesture | Action |
+|---|---|
+| ✋ Open palm | Play / Pause |
+| ☝️ Index finger up (hold to repeat) | Volume up |
+| ✌️ Index + middle up (hold to repeat) | Volume down |
+
 ## Setup
 
 ```bash
