@@ -65,6 +65,7 @@ def run(args):
     stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
     last_process = 0.0
     last_hand_seen = time.monotonic()
+    had_hand = False
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
     action, action_until = "", 0.0
     shown = False
@@ -89,6 +90,7 @@ def run(args):
                 fingers, gesture_name = None, ""
                 if hand is not None:
                     last_hand_seen = now
+                    had_hand = True
                     fingers = fingers_up(hand)
                     stable = stability.update(classify(fingers))
                     gesture_name = DISPLAY_NAMES.get(stable, "...")
@@ -96,8 +98,10 @@ def run(args):
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
                         print(fired)
-                else:
+                elif had_hand:              # disarm: hand left, reset everything
+                    had_hand = False
                     stability.reset()
+                    controller.hand_lost()
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
