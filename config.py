@@ -42,6 +42,8 @@ VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
 
 # --- Swipes ---------------------------------------------------------------------
 SWIPE_WINDOW_S = 0.4
+SWIPE_THRESHOLD = 0.25      # frame-width fraction the wrist must travel
+SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
 
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"

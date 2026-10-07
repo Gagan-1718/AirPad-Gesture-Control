@@ -28,6 +28,8 @@ DISPLAY_NAMES = {
     "two": "Two fingers",
     "three": "Three fingers",
     "other": "Unknown",
+    "swipe_left": "Swipe left",
+    "swipe_right": "Swipe right",
 }
 
 
@@ -80,3 +82,19 @@ class MotionTracker:
 
     def _recent(self, now, window_s):
         return [s for s in self._history if now - s[0] <= window_s]
+
+    def detect_swipe(self, now):
+        """Return "swipe_left", "swipe_right" or None."""
+        samples = self._recent(now, config.SWIPE_WINDOW_S)
+        if len(samples) < 3:
+            return None
+        _, x_now, y_now = samples[-1]
+        lowest = min(samples, key=lambda s: s[1])
+        highest = max(samples, key=lambda s: s[1])
+
+        for direction, start, dx in (("swipe_right", lowest, x_now - lowest[1]),
+                                     ("swipe_left", highest, highest[1] - x_now)):
+            dy = abs(y_now - start[2])
+            if dx > config.SWIPE_THRESHOLD and dy < config.SWIPE_MAX_SLOPE * dx:
+                return direction
+        return None
