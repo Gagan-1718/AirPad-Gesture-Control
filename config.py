@@ -23,6 +23,8 @@ NUM_HANDS = 1
 MIN_DETECTION_CONFIDENCE = 0.7
 MIN_PRESENCE_CONFIDENCE = 0.6
 MIN_TRACKING_CONFIDENCE = 0.6
+MIN_HAND_SIZE = 0.05        # frame-height fraction; smaller hands (far away /
+                            # people in the background) are ignored
 
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"

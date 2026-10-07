@@ -9,6 +9,7 @@ import time
 import cv2
 
 import config
+from gestures import hand_size
 from tracker import HAND_CONNECTIONS, HandTracker
 
 GREEN = (80, 220, 100)
@@ -66,6 +67,8 @@ def run(args):
                 if config.MIRROR:
                     frame = cv2.flip(frame, 1)
                 hand = tracker.process(frame)
+                if hand is not None and hand_size(hand) < config.MIN_HAND_SIZE * hand.frame_h:
+                    hand = None         # too far away to trust
                 if hand is not None:
                     last_hand_seen = now
                     draw_hand(frame, hand)
