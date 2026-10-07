@@ -112,7 +112,8 @@ def test_two_fingers_scroll_and_freeze_the_cursor():
     out = FakeOutput()
     hands = [make_hand((1, 1, 0, 0), cy=400 - 4 * k) for k in range(20)]
     run(MouseController(out), hands, pose="two")
-    assert sum(e[1] for e in out.log if e[0] == "scroll") != 0
+    # Natural scrolling: hand moves up, page moves up, i.e. scroll down.
+    assert sum(e[1] for e in out.log if e[0] == "scroll") < 0
     assert moves(out) == []
 
 

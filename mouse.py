@@ -169,11 +169,13 @@ class MouseController:
         if self._scroll_y is None:
             self._scroll_y = y
             return None
-        dy = self._scroll_y - y         # hand moving up -> positive -> scroll up
+        dy = y - self._scroll_y         # hand moving down -> positive
         self._scroll_y = y
-        if abs(dy) < config.MOUSE_SCROLL_DEADZONE:
+        if abs(dy) < config.SCROLL_DEADZONE:
             return None
-        self._scroll_rest += dy * config.MOUSE_SCROLL_GAIN
+        # Natural: page follows the hand (hand up -> content up -> scroll down).
+        direction = 1 if config.SCROLL_NATURAL else -1
+        self._scroll_rest += direction * dy * config.SCROLL_GAIN
         amount = int(self._scroll_rest)
         if amount == 0:
             return None

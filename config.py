@@ -62,8 +62,9 @@ PINCH_MIN_REACH = 0.75      # pinching finger's tip-to-wrist / PIP-to-wrist; bel
                             # this it is curled into a fist, not pinching
 
 # --- Scrolling (two fingers up, move hand up / down) ---------------------------
-MOUSE_SCROLL_GAIN = 4000    # wheel units per frame-height of hand movement
-MOUSE_SCROLL_DEADZONE = 0.004  # ignore tiny hand jitter while scrolling
+SCROLL_GAIN = 5000          # wheel units per frame-height of hand movement (120 = 1 notch)
+SCROLL_DEADZONE = 0.003     # ignore tiny hand jitter
+SCROLL_NATURAL = True       # True: page follows your hand, like a touchpad / phone
 
 # --- Media -------------------------------------------------------------------------
 PLAYPAUSE_HOLD_S = 0.3      # open palm held still this long = play / pause
