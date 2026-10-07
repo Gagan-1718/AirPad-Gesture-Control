@@ -5,7 +5,6 @@ q / Esc = quit.
 Run with --dry-run to see gestures without sending any key presses.
 """
 import argparse
-import sys
 import time
 
 import cv2
@@ -13,6 +12,7 @@ import numpy as np
 
 import config
 from actions import DryRunOutput, GestureController, Output
+from camera import Camera
 from gestures import DISPLAY_NAMES, MotionTracker, classify, fingers_up, hand_size
 from mouse import MouseController
 from smoothing import StabilityFilter
@@ -23,19 +23,6 @@ WHITE = (255, 255, 255)
 YELLOW = (0, 220, 255)
 GREY = (160, 160, 160)
 
-
-def open_camera(index):
-    # DirectShow opens much faster than the default MSMF backend on Windows.
-    backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
-    cap = cv2.VideoCapture(index, backend)
-    if not cap.isOpened():
-        cap = cv2.VideoCapture(index)
-    if not cap.isOpened():
-        raise SystemExit(f"Could not open camera {index}. Is another app using it?")
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.FRAME_WIDTH)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.FRAME_HEIGHT)
-    cap.set(cv2.CAP_PROP_FPS, config.CAMERA_FPS)
-    return cap
 
 
 def mode_title(mode):
@@ -89,7 +76,7 @@ def status_panel(state):
 
 def run(args):
     output = DryRunOutput() if args.dry_run else Output()
-    cap = open_camera(args.camera)
+    camera = Camera(args.camera)
     tracker = HandTracker()
     controller = GestureController(output)
     mouse = MouseController(output)
@@ -107,9 +94,6 @@ def run(args):
     shown = False
     try:
         while True:
-            if not cap.grab():          # grab without decoding; cheap for skipped frames
-                print("Camera stopped delivering frames.")
-                break
             now = time.monotonic()
             idle = now - last_hand_seen > config.IDLE_AFTER_S
             if idle:
@@ -118,11 +102,14 @@ def run(args):
                 interval = 1.0 / config.MOUSE_PROCESS_FPS
             else:
                 interval = 1.0 / config.PROCESS_FPS
-            if now - last_process >= interval:
-                last_process = now
-                ok, frame = cap.retrieve()
-                if not ok:
-                    continue
+            if now - last_process < interval:
+                key = cv2.waitKey(5) & 0xFF       # rest until the next frame is due
+            else:
+                frame = camera.read()             # waits for the next fresh frame
+                if frame is None:
+                    print("Camera stopped delivering frames.")
+                    break
+                now = last_process = time.monotonic()
                 if config.MIRROR:
                     frame = cv2.flip(frame, 1)
                 hand = tracker.process(frame)
@@ -176,7 +163,8 @@ def run(args):
                 else:
                     cv2.imshow(config.WINDOW_NAME, status_panel(state))
                 shown = True
-            key = cv2.waitKey(1) & 0xFF
+                key = cv2.waitKey(1) & 0xFF
+
             if key in (ord("q"), 27):
                 break
             if key == ord("v"):
@@ -188,7 +176,7 @@ def run(args):
                 break               # window closed with the X button
     finally:
         mouse.release()             # never leave the mouse button held down
-        cap.release()
+        camera.close()
         tracker.close()
         cv2.destroyAllWindows()
 
