@@ -179,6 +179,7 @@ def run(args):
             if shown and cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break               # window closed with the X button
     finally:
+        mouse.release()             # never leave the mouse button held down
         cap.release()
         tracker.close()
         cv2.destroyAllWindows()
