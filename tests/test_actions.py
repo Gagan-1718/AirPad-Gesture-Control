@@ -105,3 +105,10 @@ def test_two_finger_swipes_go_back_and_forward():
     assert ctrl.update(1.0, None, False, ("swipe_left", "two")) == "Back"
     assert ctrl.update(3.0, None, False, ("swipe_right", "two")) == "Forward"
     assert out.log == [("hotkey", ("alt", "left")), ("hotkey", ("alt", "right"))]
+
+
+def test_three_finger_swipe_switches_apps():
+    out = FakeOutput()
+    ctrl = GestureController(out)
+    assert ctrl.update(1.0, None, False, ("swipe_right", "three")) == "Switch app"
+    assert out.log == [("hotkey", ("alt", "tab"))]
