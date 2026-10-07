@@ -1,11 +1,12 @@
-"""Mouse mode: move the cursor with your hand, pinch to click, two fingers to scroll.
+"""Mouse control: move the cursor with your hand, pinch to click, two fingers to scroll.
 
-- Cursor follows the index-finger knuckle (landmark 5), not the fingertip,
-  so the cursor does not jump when you pinch.
+- Point (index up) and move: the cursor follows your hand.
+- Fist (or hand out of view): the cursor stays put.
 - Thumb + index pinch = left button down; open = button up (so hold = drag).
 - Thumb + middle pinch with index up = right click.
 - Two fingers up (index + middle): cursor freezes, move hand up/down to scroll.
-- Three fingers: cursor freezes so you can hold still to switch mode.
+The cursor follows the index-finger knuckle (landmark 5), not the fingertip,
+so the cursor does not jump when you pinch.
 """
 import math
 
@@ -18,6 +19,10 @@ from smoothing import OneEuroFilter
 WRIST, THUMB_TIP, INDEX_MCP = 0, 4, 5
 INDEX_PIP, INDEX_TIP, MIDDLE_PIP, MIDDLE_TIP = 6, 8, 10, 12
 EDGE = 2   # keep off the exact screen corners (pyautogui fail-safe zone)
+
+MOVE_POSES = {"point", "other"}
+FREEZE_POSES = {"fist", "palm", "two", "three", "thumb_up", "thumb_down"}
+NO_CLICK_POSES = {"palm", "two", "three", "thumb_up", "thumb_down"}
 
 
 def _dist(a, b):
@@ -39,6 +44,7 @@ class MouseController:
         self._screen_w, self._screen_h = pyautogui.size()
         self._fx = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
         self._fy = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
+        self._moving = False          # current pose drives the cursor
         self._button_down = False
         self._pinch_frames = 0
         self._right_pinched = False
@@ -47,20 +53,25 @@ class MouseController:
         self._last_pos = None
 
     def release(self):
-        """Let go of everything (hand lost, mode change, quit). Never leaves a stuck button."""
+        """Let go of everything (hand lost, quit). Never leaves a stuck button."""
         if self._button_down:
             self._out.mouse_up()
             self._button_down = False
+        self._moving = False
         self._pinch_frames = 0
         self._right_pinched = False
         self._scroll_y = None
         self._scroll_rest = 0.0
+        self._lift()
+
+    def _lift(self):
+        """Stop following the hand until the pointing pose comes back."""
         self._fx.reset()
         self._fy.reset()
         self._last_pos = None
 
-    def update(self, now, hand, gesture, fingers):
-        """Feed one frame. gesture: stable gesture or None. Returns an event label or None."""
+    def update(self, now, hand, pose, fingers):
+        """Feed one frame. pose: stable pose or None. Returns an event label or None."""
         pts = hand.points
         size = hand_size(hand) or 1e-6
         pinch = _dist(pts[THUMB_TIP], pts[INDEX_TIP]) / size
@@ -70,16 +81,25 @@ class MouseController:
         if not _reaching(pts, MIDDLE_TIP, MIDDLE_PIP):
             right = max(right, config.PINCH_OFF + 1e-3)
 
-        if not self._button_down and gesture in ("two", "three"):
-            self._pinch_frames = 0
-            if gesture == "two":
-                return self._scroll(hand.norm(INDEX_MCP)[1])
-            self._scroll_y = None
-            return None         # hold still so the mode switch can complete
-        self._scroll_y = None
+        if pose in MOVE_POSES:
+            self._moving = True
+        elif pose in FREEZE_POSES:
+            self._moving = False
 
-        self._move(now, hand)
-        return self._buttons(pinch, right, fingers)
+        event = None
+        if pose == "two" and not self._button_down:
+            event = self._scroll(hand.norm(INDEX_MCP)[1])
+        else:
+            self._scroll_y = None
+
+        if self._button_down or self._moving:
+            self._move(now, hand)
+        else:
+            self._lift()
+
+        if pose not in NO_CLICK_POSES or self._button_down:
+            event = self._buttons(pinch, right, fingers) or event
+        return event
 
     def _move(self, now, hand):
         nx, ny = hand.norm(INDEX_MCP)

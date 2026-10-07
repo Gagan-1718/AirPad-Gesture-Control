@@ -86,3 +86,10 @@ def test_cursor_stays_off_the_screen_corners():
     run(MouseController(out), [make_hand((1, 0, 0, 0), cx=40, cy=200)] * 60)
     x, y = [e for e in out.log if e[0] == "move"][-1][1:]
     assert x >= 2 and y >= 2
+
+
+def test_palm_and_fist_do_not_move_the_cursor():
+    for pose, fingers in (("palm", (1, 1, 1, 1)), ("fist", (0, 0, 0, 0))):
+        out = FakeOutput()
+        run(MouseController(out), [make_hand(fingers, cx=250 + 5 * k) for k in range(30)], gesture=pose)
+        assert not [e for e in out.log if e[0] == "move"]
