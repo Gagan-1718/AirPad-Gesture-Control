@@ -220,3 +220,24 @@ aircontrol/
 - **Mouse mode:** index finger moves the cursor, pinch clicks
 - **Custom gesture config:** users remap gestures in a JSON file
 - **System tray icon** so it runs in the background
+
+---
+
+## 11. Status
+
+All phases (0-6) are complete. Changes made during the build:
+
+- **MediaPipe API:** recent MediaPipe releases removed `mp.solutions.hands`, so
+  tracking uses the Tasks `HandLandmarker` API (with a downloaded model file).
+  `model_complexity` no longer exists.
+- **Python:** MediaPipe now ships wheels for current Python versions, so
+  3.10+ works (developed on 3.14).
+- **Finger detection:** tip-to-wrist vs PIP-to-wrist distances instead of
+  comparing `y` values, so tilted hands work. The thumb is ignored for
+  finger-count poses.
+- **Accuracy:** gestures fire once per pose (latching), static gestures need a
+  still hand, and the return stroke after a swipe is ignored.
+- **Redesign:** after testing the five-mode version (media, slides, PDF, mouse,
+  game), mode switching proved to be the main friction. Version 1.0 replaces
+  the modes with one always-on, touchpad-like mode. See the
+  [changelog](../CHANGELOG.md).
