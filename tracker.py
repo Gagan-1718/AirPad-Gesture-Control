@@ -47,12 +47,16 @@ class HandTracker:
             min_tracking_confidence=config.MIN_TRACKING_CONFIDENCE,
         )
         self._landmarker = vision.HandLandmarker.create_from_options(options)
+        self._last_ts = -1
 
     def process(self, frame_bgr):
         """Return the first detected Hand, or None."""
         rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        result = self._landmarker.detect_for_video(image, int(time.monotonic() * 1000))
+        # VIDEO mode requires strictly increasing timestamps.
+        ts = max(int(time.monotonic() * 1000), self._last_ts + 1)
+        self._last_ts = ts
+        result = self._landmarker.detect_for_video(image, ts)
         if not result.hand_landmarks:
             return None
         h, w = frame_bgr.shape[:2]
