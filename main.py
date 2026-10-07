@@ -46,25 +46,30 @@ def draw_hand(img, hand):
 def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
+    last_process = 0.0
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
     try:
         while True:
-            ok, frame = cap.read()
-            if not ok:
+            if not cap.grab():          # grab without decoding; cheap for skipped frames
                 print("Camera stopped delivering frames.")
                 break
-            if config.MIRROR:
-                frame = cv2.flip(frame, 1)
-            hand = tracker.process(frame)
-            if hand is not None:
-                draw_hand(frame, hand)
-
             now = time.monotonic()
-            fps_count += 1
-            if now - fps_start >= 1.0:
-                fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
-            text(frame, f"{fps:.0f} fps", (frame.shape[1] - 90, 28), GREY)
-            cv2.imshow(config.WINDOW_NAME, frame)
+            if now - last_process >= 1.0 / config.PROCESS_FPS:
+                last_process = now
+                ok, frame = cap.retrieve()
+                if not ok:
+                    continue
+                if config.MIRROR:
+                    frame = cv2.flip(frame, 1)
+                hand = tracker.process(frame)
+                if hand is not None:
+                    draw_hand(frame, hand)
+
+                fps_count += 1
+                if now - fps_start >= 1.0:
+                    fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
+                text(frame, f"{fps:.0f} fps", (frame.shape[1] - 90, 28), GREY)
+                cv2.imshow(config.WINDOW_NAME, frame)
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
                 break
