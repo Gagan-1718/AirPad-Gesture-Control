@@ -40,11 +40,16 @@ STABILITY_REQUIRED = 4
 STILL_WINDOW_S = 0.25
 STILL_THRESHOLD = 0.04      # frame fraction the wrist may wander and count as still
 
-# --- Cursor -----------------------------------------------------------------------
-MOUSE_BOX = (0.25, 0.20, 0.75, 0.65)  # frame area (x0, y0, x1, y1) mapped to the
-                                      # whole screen; smaller box = faster cursor
-MOUSE_SMOOTH_MIN_CUTOFF = 1.0  # lower = steadier cursor when still, more lag
-MOUSE_SMOOTH_BETA = 0.01       # higher = less lag when moving fast
+# --- Cursor (relative, like a touchpad) ------------------------------------------
+# Cursor travel = hand travel * speed, where speed grows with hand speed:
+# slow movements are precise, fast flicks cross the screen.
+CURSOR_MIN_SPEED = 1.2      # screens per frame moved, for slow hand movement
+CURSOR_MAX_SPEED = 4.0      # ... for fast hand movement
+CURSOR_ACCEL_START = 0.15   # hand speed (frames / s) where acceleration starts
+CURSOR_ACCEL_FULL = 1.2     # hand speed where it reaches CURSOR_MAX_SPEED
+CURSOR_DEADZONE = 0.015     # hand speed below which the cursor holds still
+CURSOR_SMOOTH_MIN_CUTOFF = 1.2  # lower = steadier when still, more lag
+CURSOR_SMOOTH_BETA = 0.03       # higher = less lag when moving fast
 
 # --- Clicks (pinches) -------------------------------------------------------------
 PINCH_ON = 0.25             # hand sizes between fingertips to count as a pinch

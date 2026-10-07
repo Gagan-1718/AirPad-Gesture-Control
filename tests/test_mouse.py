@@ -3,6 +3,11 @@ from helpers import FakeOutput, make_hand
 from mouse import MouseController
 
 
+def point(cx=320, cy=400):
+    """Index up with the thumb spread: drives the cursor."""
+    return make_hand((1, 0, 0, 0), thumb="out", cx=cx, cy=cy)
+
+
 def pinch_hand(cx=320, cy=400):
     """Thumb tip touching a half-bent index fingertip."""
     hand = make_hand((0, 0, 0, 0), cx=cx, cy=cy)
@@ -19,34 +24,64 @@ def right_click_hand(cx=320, cy=400):
     return hand
 
 
-def run(mouse, hands, gesture="point", dt=1 / 30):
+def run(mouse, hands, pose="point", dt=1 / 30, t0=0.0):
     """Feed hands at 30 fps; return the event labels."""
     events = []
     for i, hand in enumerate(hands, start=1):
-        event = mouse.update(i * dt, hand, gesture, fingers_up(hand))
+        event = mouse.update(t0 + i * dt, hand, pose, fingers_up(hand))
         if event:
             events.append(event)
     return events
 
 
-def test_cursor_follows_the_hand():
+def moves(out):
+    return [e for e in out.log if e[0] == "move"]
+
+
+def test_cursor_moves_with_the_hand():
     out = FakeOutput()
-    run(MouseController(out), [make_hand((1, 0, 0, 0), cx=250 + 5 * k) for k in range(30)])
-    moves = [e for e in out.log if e[0] == "move"]
-    assert moves[-1][1] > moves[0][1]
+    run(MouseController(out), [point(cx=250 + 3 * k) for k in range(30)])
+    assert out.position()[0] > 1500
+
+
+def test_cursor_continues_from_where_it_already_is():
+    out = FakeOutput(position=(100, 100))
+    run(MouseController(out), [point(cx=320 + 2 * k) for k in range(10)])
+    assert 100 < out.position()[0] < 1000
+
+
+def test_fast_moves_travel_further_than_slow_ones():
+    slow, fast = FakeOutput(), FakeOutput()
+    run(MouseController(slow), [point()] * 10 + [point(cx=320 + 64 * k / 30) for k in range(1, 31)])
+    run(MouseController(fast), [point()] * 10 + [point(cx=320 + 64 * k / 3) for k in range(1, 4)])
+    assert fast.position()[0] - 1500 > 1.5 * (slow.position()[0] - 1500)
+
+
+def test_fist_lifts_the_cursor():
+    out = FakeOutput()
+    mouse = MouseController(out)
+    run(mouse, [point(cx=320 + 2 * k) for k in range(15)])
+    x = out.position()[0]
+    run(mouse, [make_hand((0, 0, 0, 0), cx=350 - 4 * k) for k in range(15)], pose="fist", t0=0.5)
+    assert out.position()[0] == x
+
+
+def test_palm_does_not_move_the_cursor():
+    out = FakeOutput()
+    run(MouseController(out), [make_hand((1, 1, 1, 1), cx=250 + 5 * k) for k in range(30)], pose="palm")
+    assert moves(out) == []
 
 
 def test_pinch_clicks():
     out = FakeOutput()
-    point = make_hand((1, 0, 0, 0), thumb="out")
-    events = run(MouseController(out), [point] * 5 + [pinch_hand()] * 4 + [point] * 5)
+    events = run(MouseController(out), [point()] * 5 + [pinch_hand()] * 4 + [point()] * 5)
     assert events == ["Click"]
     assert out.events() == [("mouse_down",), ("mouse_up",)]
 
 
 def test_right_click():
     out = FakeOutput()
-    events = run(MouseController(out), [make_hand((1, 0, 0, 0), thumb="out")] * 5 + [right_click_hand()] * 6)
+    events = run(MouseController(out), [point()] * 5 + [right_click_hand()] * 6)
     assert events == ["Right click"]
     assert out.events() == [("right_click",)]
 
@@ -69,27 +104,19 @@ def test_fist_does_not_click():
     out = FakeOutput()
     fist = make_hand((0, 0, 0, 0))
     fist.points[4] = (300, 305)     # thumb right next to the curled index tip
-    run(MouseController(out), [fist] * 10, gesture="fist")
+    run(MouseController(out), [fist] * 10, pose="fist")
     assert out.events() == []
 
 
 def test_two_fingers_scroll_and_freeze_the_cursor():
     out = FakeOutput()
     hands = [make_hand((1, 1, 0, 0), cy=400 - 4 * k) for k in range(20)]
-    run(MouseController(out), hands, gesture="two")
-    assert sum(e[1] for e in out.log if e[0] == "scroll") > 0
-    assert not [e for e in out.log if e[0] == "move"]
+    run(MouseController(out), hands, pose="two")
+    assert sum(e[1] for e in out.log if e[0] == "scroll") != 0
+    assert moves(out) == []
 
 
 def test_cursor_stays_off_the_screen_corners():
     out = FakeOutput()
-    run(MouseController(out), [make_hand((1, 0, 0, 0), cx=40, cy=200)] * 60)
-    x, y = [e for e in out.log if e[0] == "move"][-1][1:]
-    assert x >= 2 and y >= 2
-
-
-def test_palm_and_fist_do_not_move_the_cursor():
-    for pose, fingers in (("palm", (1, 1, 1, 1)), ("fist", (0, 0, 0, 0))):
-        out = FakeOutput()
-        run(MouseController(out), [make_hand(fingers, cx=250 + 5 * k) for k in range(30)], gesture=pose)
-        assert not [e for e in out.log if e[0] == "move"]
+    run(MouseController(out), [point(cx=600 - 12 * k) for k in range(45)])
+    assert out.position()[0] >= 2

@@ -1,10 +1,14 @@
-"""Mouse control: move the cursor with your hand, pinch to click, two fingers to scroll.
+"""Cursor, clicks and scrolling, used like a touchpad.
 
-- Point (index up) and move: the cursor follows your hand.
-- Fist (or hand out of view): the cursor stays put.
-- Thumb + index pinch = left button down; open = button up (so hold = drag).
-- Thumb + middle pinch with index up = right click.
-- Two fingers up (index + middle): cursor freezes, move hand up/down to scroll.
+- Point (index up) and move: the cursor moves *relative* to your hand, with
+  acceleration: slow = precise, fast = far. It continues from wherever the
+  cursor already is, so you can mix it with the real touchpad.
+- Fist (or hand out of view) = "lift the finger": the cursor stays put, so you
+  can reposition your hand.
+- Pinch thumb + index: left button down; open = up. Hold the pinch and move to
+  drag. Pinch twice quickly to double-click.
+- Pinch thumb + middle with the index up: right click.
+- Two fingers up, move hand up / down: scroll.
 The cursor follows the index-finger knuckle (landmark 5), not the fingertip,
 so the cursor does not jump when you pinch.
 """
@@ -42,15 +46,16 @@ class MouseController:
     def __init__(self, output):
         self._out = output
         self._screen_w, self._screen_h = pyautogui.size()
-        self._fx = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
-        self._fy = OneEuroFilter(config.MOUSE_SMOOTH_MIN_CUTOFF, config.MOUSE_SMOOTH_BETA)
+        self._fx = OneEuroFilter(config.CURSOR_SMOOTH_MIN_CUTOFF, config.CURSOR_SMOOTH_BETA)
+        self._fy = OneEuroFilter(config.CURSOR_SMOOTH_MIN_CUTOFF, config.CURSOR_SMOOTH_BETA)
         self._moving = False          # current pose drives the cursor
+        self._ref = None              # last filtered hand position (x, y, t)
+        self._pos = (0.0, 0.0)        # cursor position with sub-pixel precision
         self._button_down = False
         self._pinch_frames = 0
         self._right_pinched = False
         self._scroll_y = None
         self._scroll_rest = 0.0
-        self._last_pos = None
 
     def release(self):
         """Let go of everything (hand lost, quit). Never leaves a stuck button."""
@@ -65,10 +70,10 @@ class MouseController:
         self._lift()
 
     def _lift(self):
-        """Stop following the hand until the pointing pose comes back."""
+        """Stop tracking hand motion; the next movement starts fresh (no jump)."""
+        self._ref = None
         self._fx.reset()
         self._fy.reset()
-        self._last_pos = None
 
     def update(self, now, hand, pose, fingers):
         """Feed one frame. pose: stable pose or None. Returns an event label or None."""
@@ -98,21 +103,34 @@ class MouseController:
             self._lift()
 
         if pose not in NO_CLICK_POSES or self._button_down:
-            event = self._buttons(pinch, right, fingers) or event
+            event = self._buttons(now, pinch, right, fingers) or event
         return event
 
     def _move(self, now, hand):
         nx, ny = hand.norm(INDEX_MCP)
-        x0, y0, x1, y1 = config.MOUSE_BOX
-        sx = min(max((nx - x0) / (x1 - x0), 0.0), 1.0) * (self._screen_w - 1)
-        sy = min(max((ny - y0) / (y1 - y0), 0.0), 1.0) * (self._screen_h - 1)
-        x = int(min(max(self._fx(now, sx), EDGE), self._screen_w - 1 - EDGE))
-        y = int(min(max(self._fy(now, sy), EDGE), self._screen_h - 1 - EDGE))
-        if (x, y) != self._last_pos:
-            self._out.move(x, y)
-            self._last_pos = (x, y)
+        # Smooth in camera pixels so the filter's speed terms behave the same at any resolution.
+        fx = self._fx(now, nx * hand.frame_w) / hand.frame_w
+        fy = self._fy(now, ny * hand.frame_h) / hand.frame_h
+        if self._ref is None:
+            self._ref = (fx, fy, now)
+            self._pos = self._out.position()
+            return
+        rx, ry, rt = self._ref
+        self._ref = (fx, fy, now)
+        dx, dy = fx - rx, fy - ry
+        speed = math.hypot(dx, dy) / max(now - rt, 1e-3)
+        if speed < config.CURSOR_DEADZONE:
+            return
+        t = (speed - config.CURSOR_ACCEL_START) / (config.CURSOR_ACCEL_FULL - config.CURSOR_ACCEL_START)
+        t = min(max(t, 0.0), 1.0)
+        gain = config.CURSOR_MIN_SPEED + (config.CURSOR_MAX_SPEED - config.CURSOR_MIN_SPEED) * t
+        x = min(max(self._pos[0] + dx * gain * self._screen_w, EDGE), self._screen_w - 1 - EDGE)
+        y = min(max(self._pos[1] + dy * gain * self._screen_h, EDGE), self._screen_h - 1 - EDGE)
+        if (int(x), int(y)) != (int(self._pos[0]), int(self._pos[1])):
+            self._out.move(int(x), int(y))
+        self._pos = (x, y)
 
-    def _buttons(self, pinch, right, fingers):
+    def _buttons(self, now, pinch, right, fingers):
         if self._button_down:
             if pinch > config.PINCH_OFF:
                 self._out.mouse_up()

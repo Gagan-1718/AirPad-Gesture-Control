@@ -44,8 +44,9 @@ def make_hand(fingers=(1, 1, 1, 1), thumb="in", cx=320, cy=400, scale=1.0, angle
 class FakeOutput:
     """Records keyboard and mouse output instead of sending it to the OS."""
 
-    def __init__(self):
+    def __init__(self, position=(1500, 900)):
         self.log = []
+        self._pos = position
 
     def press(self, key):
         self.log.append(("press", key))
@@ -56,7 +57,11 @@ class FakeOutput:
     def scroll(self, amount):
         self.log.append(("scroll", amount))
 
+    def position(self):
+        return self._pos
+
     def move(self, x, y):
+        self._pos = (x, y)
         self.log.append(("move", x, y))
 
     def mouse_down(self):

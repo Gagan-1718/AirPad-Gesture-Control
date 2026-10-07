@@ -34,6 +34,9 @@ class Output:
     def scroll(self, amount):
         pyautogui.scroll(amount)    # Windows: 120 units = one wheel notch
 
+    def position(self):
+        return tuple(pyautogui.position())
+
     def move(self, x, y):
         pyautogui.moveTo(x, y)
 
@@ -48,7 +51,11 @@ class Output:
 
 
 class DryRunOutput(Output):
-    """Prints actions instead of sending them. The cursor is not moved."""
+    """Prints actions instead of sending them. The real cursor is not moved."""
+
+    def __init__(self):
+        w, h = pyautogui.size()
+        self._pos = (w // 2, h // 2)
 
     def press(self, key):
         print(f"[dry-run] press {key}")
@@ -59,8 +66,11 @@ class DryRunOutput(Output):
     def scroll(self, amount):
         print(f"[dry-run] scroll {amount}")
 
+    def position(self):
+        return self._pos
+
     def move(self, x, y):
-        pass
+        self._pos = (x, y)
 
     def mouse_down(self):
         print("[dry-run] mouse down")
