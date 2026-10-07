@@ -1,4 +1,9 @@
-"""All tunable settings for AirPad live here."""
+"""All tunable settings for AirPad live here.
+
+Distances marked "frame fraction" are relative to the camera frame (0..1).
+Distances marked "hand sizes" are relative to wrist -> middle-finger-base length,
+so they work the same whether your hand is near or far from the camera.
+"""
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
