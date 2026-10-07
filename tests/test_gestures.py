@@ -57,11 +57,11 @@ def test_pinch_with_curled_fingers_is_not_thumbs_up():
     assert classify(hand, fingers_up(hand)) != "thumb_up"
 
 
-def track(motion, points, dt=1 / 15):
+def track(motion, points, dt=1 / 15, pose="palm"):
     """Feed (x, y) wrist positions at 15 fps; return the last swipe seen."""
     swipe = None
     for i, (x, y) in enumerate(points, start=1):
-        motion.update(i * dt, x, y)
+        motion.update(i * dt, x, y, pose)
         swipe = motion.detect_swipe(i * dt) or swipe
     return swipe
 
@@ -72,11 +72,11 @@ def move(x0, x1, frames, y0=0.5, y1=None):
 
 
 def test_fast_move_right_is_a_swipe():
-    assert track(MotionTracker(), [(0.3, 0.5)] * 6 + move(0.3, 0.7, 4)) == "swipe_right"
+    assert track(MotionTracker(), [(0.3, 0.5)] * 6 + move(0.3, 0.7, 4)) == ("swipe_right", "palm")
 
 
 def test_fast_move_left_is_a_swipe():
-    assert track(MotionTracker(), [(0.7, 0.5)] * 6 + move(0.7, 0.3, 4)) == "swipe_left"
+    assert track(MotionTracker(), [(0.7, 0.5)] * 6 + move(0.7, 0.3, 4)) == ("swipe_left", "palm")
 
 
 def test_slow_move_is_not_a_swipe():
@@ -104,4 +104,11 @@ def test_moving_hand_is_not_still():
 
 
 def test_quick_swipe_right_after_raising_the_hand():
-    assert track(MotionTracker(), [(0.3, 0.5)] * 3 + move(0.3, 0.7, 5)) == "swipe_right"
+    assert track(MotionTracker(), [(0.3, 0.5)] * 3 + move(0.3, 0.7, 5)) == ("swipe_right", "palm")
+
+
+def test_swipe_reports_the_majority_pose():
+    m = MotionTracker()
+    for i, (x, y) in enumerate([(0.3, 0.5)] * 6 + move(0.3, 0.7, 4), start=1):
+        m.update(i / 15, x, y, "other" if i == 8 else "two")      # one blurry frame
+    assert m.detect_swipe(10 / 15) == ("swipe_right", "two")

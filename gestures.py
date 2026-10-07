@@ -1,6 +1,6 @@
 """Gesture recognition: finger states, static gestures and hand motion."""
 import math
-from collections import deque
+from collections import Counter, deque
 
 import config
 
@@ -79,7 +79,7 @@ class MotionTracker:
     """Wrist position history for swipe and stillness detection."""
 
     def __init__(self):
-        self._history = deque()     # (t, x, y) in frame fractions
+        self._history = deque()     # (t, x, y, pose) with x, y in frame fractions
         self._first_seen = None
         self._keep_s = max(config.SWIPE_WINDOW_S, config.STILL_WINDOW_S)
 
@@ -91,10 +91,10 @@ class MotionTracker:
         """Forget past motion but keep the hand armed (used after a swipe)."""
         self._history.clear()
 
-    def update(self, now, x, y):
+    def update(self, now, x, y, pose):
         if self._first_seen is None:
             self._first_seen = now
-        self._history.append((now, x, y))
+        self._history.append((now, x, y, pose))
         while self._history and now - self._history[0][0] > self._keep_s:
             self._history.popleft()
 
@@ -102,14 +102,18 @@ class MotionTracker:
         return [s for s in self._history if now - s[0] <= window_s]
 
     def detect_swipe(self, now):
-        """Return "swipe_left", "swipe_right" or None."""
+        """Return (direction, pose) for a swipe, else None.
+
+        direction is "swipe_left" / "swipe_right"; pose is the hand shape held
+        during most of the swipe (blurry frames mid-swipe are outvoted).
+        """
         if self._first_seen is None:
             return None
         armed_at = self._first_seen + config.SWIPE_ARM_S
         samples = [s for s in self._recent(now, config.SWIPE_WINDOW_S) if s[0] >= armed_at]
         if len(samples) < 3:
             return None
-        _, x_now, y_now = samples[-1]
+        _, x_now, y_now, _ = samples[-1]
         lowest = min(samples, key=lambda s: s[1])
         highest = max(samples, key=lambda s: s[1])
 
@@ -117,7 +121,9 @@ class MotionTracker:
                                      ("swipe_left", highest, highest[1] - x_now)):
             dy = abs(y_now - start[2])
             if dx > config.SWIPE_THRESHOLD and dy < config.SWIPE_MAX_SLOPE * dx:
-                return direction
+                poses = Counter(s[3] for s in samples if s[3] is not None)
+                pose = poses.most_common(1)[0][0] if poses else None
+                return direction, pose
         return None
 
     def is_still(self, now):

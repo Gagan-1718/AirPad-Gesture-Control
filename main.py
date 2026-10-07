@@ -124,11 +124,13 @@ def run(args):
                     last_hand_seen = now
                     had_hand = True
                     fingers = fingers_up(hand)
-                    stable = stability.update(classify(hand, fingers))
-                    motion.update(now, *hand.norm(0))
+                    raw = classify(hand, fingers)
+                    stable = stability.update(raw)
+                    motion.update(now, *hand.norm(0), raw)
                     swipe = motion.detect_swipe(now)
                     if swipe:
                         motion.clear_history()
+                        swipe = swipe[0]
                     fired = controller.update(now, stable, motion.is_still(now), swipe)
                     if controller.mode == "mouse":
                         swipe = None
