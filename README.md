@@ -42,6 +42,22 @@ where you aim.
 | 👍 Thumbs up, hold | Volume up (repeats while held) |
 | 👎 Thumbs down, hold | Volume down (repeats while held) |
 
+### Tips
+
+- Keep your palm facing the camera, 40 cm to 1.5 m away.
+- Swipe right away, without holding the open palm still first. Holding it
+  still triggers play/pause.
+- One-shot gestures fire once per pose. To fire again, change the pose or
+  lower your hand.
+- Bringing your hand back after a swipe is ignored, so "next, next, next" works.
+- Swipes and keys go to the **focused window**. Pinch-click a window first to
+  focus it, just like with a mouse.
+- **PDFs:** palm swipes send the arrow keys. For one swipe = one page, set the
+  viewer to fit a whole page (Edge/Chrome PDF viewer: `Ctrl + \`). Or scroll
+  with two fingers.
+- **PowerPoint slideshow:** palm swipes change slides. A pinch-click also
+  advances, like a mouse click.
+
 ## Install
 
 Python 3.10 or newer (tested on 3.14 with MediaPipe 1.1).
