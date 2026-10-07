@@ -26,5 +26,10 @@ MIN_TRACKING_CONFIDENCE = 0.6
 MIN_HAND_SIZE = 0.05        # frame-height fraction; smaller hands (far away /
                             # people in the background) are ignored
 
+# --- Finger detection ---------------------------------------------------------
+# A finger is "up" when tip-to-wrist distance > ratio * PIP-to-wrist distance.
+# Rotation-independent, unlike comparing raw y values.
+FINGER_EXTENDED_RATIO = 1.15
+
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"
