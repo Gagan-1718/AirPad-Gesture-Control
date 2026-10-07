@@ -50,6 +50,7 @@ class GestureController:
         self.mode = config.START_MODE
         self._cooldowns = Cooldowns()
         self._latched = None          # gesture already used; ignored until it changes
+        self._last_swipe = None       # (direction, time)
 
     def hand_lost(self):
         self._latched = None
@@ -72,9 +73,14 @@ class GestureController:
         return binding.label
 
     def _handle_swipe(self, now, swipe):
+        if self._last_swipe is not None:
+            last_dir, last_t = self._last_swipe
+            if swipe != last_dir and now - last_t < config.SWIPE_REVERSE_BLOCK_S:
+                return None   # the hand coming back after a swipe
         binding = SWIPE_BINDINGS[self.mode].get(swipe)
         if binding is None or not self._cooldowns.ready("swipe", now):
             return None
         self._send(binding.key)
         self._cooldowns.trigger("swipe", now, config.SWIPE_COOLDOWN_S)
+        self._last_swipe = (swipe, now)
         return binding.label

@@ -45,6 +45,7 @@ SWIPE_WINDOW_S = 0.4
 SWIPE_THRESHOLD = 0.25      # frame-width fraction the wrist must travel
 SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
 SWIPE_COOLDOWN_S = 1.0      # applies to both directions
+SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
 
 # --- Modes --------------------------------------------------------------------
 MODES = ["media", "slides"]
