@@ -1,7 +1,7 @@
 """Maps gestures to key presses per mode, plus mode switching.
 
 Firing rules:
-- One-shot actions (play/pause, swipes) fire once, then "latch": holding the
+- One-shot actions (play/pause, jump, swipes) fire once, then "latch": holding the
   gesture does not repeat it. Change gesture or remove the hand to re-arm.
 - Repeat actions (volume) keep firing every `repeat_s` while held.
 - Static gestures need the hand roughly still (unless `require_still=False`),
@@ -33,6 +33,8 @@ SWIPE_BINDINGS = {
               "swipe_left": Binding("prevtrack", "Previous track")},
     "slides": {"swipe_right": Binding("right", "Next slide"),
                "swipe_left": Binding("left", "Previous slide")},
+    "game": {"swipe_right": Binding("right", "Move right"),
+             "swipe_left": Binding("left", "Move left")},
 }
 
 STATIC_BINDINGS = {
@@ -42,6 +44,9 @@ STATIC_BINDINGS = {
         "two": Binding("volumedown", "Volume down", repeat_s=config.VOLUME_REPEAT_S),
     },
     "slides": {},
+    "game": {
+        "fist": Binding("space", "Jump", cooldown_s=config.JUMP_COOLDOWN_S, require_still=False),
+    },
 }
 
 

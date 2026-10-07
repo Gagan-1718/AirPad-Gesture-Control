@@ -45,6 +45,7 @@ GESTURE_COOLDOWN_S = 0.8
 PLAYPAUSE_HOLD_S = 0.3      # palm must be held still briefly (avoids firing
                             # when you raise an open hand to swipe)
 VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
+JUMP_COOLDOWN_S = 0.3       # game needs fast repeat jumps
 MODE_SWITCH_HOLD_S = 1.5
 
 # --- Swipes ---------------------------------------------------------------------
@@ -57,7 +58,7 @@ SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
 SWIPE_STATIC_BLOCK_S = 0.6  # no static gestures right after a swipe
 
 # --- Modes --------------------------------------------------------------------
-MODES = ["media", "slides"]
+MODES = ["media", "slides", "game"]
 START_MODE = "media"
 
 # --- UI -----------------------------------------------------------------------

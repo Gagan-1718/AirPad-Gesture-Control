@@ -112,3 +112,11 @@ def test_short_three_finger_hold_does_not_switch():
     ctrl = GestureController(lambda key: None)
     feed(ctrl, ["three"] * 15 + [None] * 5)                # 1 second
     assert ctrl.mode == "media"
+
+
+def test_game_mode_jumps_on_each_fist():
+    sent = []
+    ctrl = GestureController(sent.append)
+    ctrl.mode = "game"
+    feed(ctrl, (["fist"] * 4 + ["palm"] * 4) * 3)
+    assert sent == ["space"] * 3
