@@ -38,6 +38,8 @@ def run(args):
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
                 break
+            if cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
+                break               # window closed with the X button
     finally:
         cap.release()
         cv2.destroyAllWindows()
