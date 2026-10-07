@@ -9,6 +9,7 @@ import time
 import cv2
 
 import config
+from actions import GestureController
 from gestures import DISPLAY_NAMES, classify, fingers_up, hand_size
 from smoothing import StabilityFilter
 from tracker import HAND_CONNECTIONS, HandTracker
@@ -51,15 +52,19 @@ def draw_overlay(img, state):
     if state["fingers"] is not None:
         text(img, f"Gesture: {state['gesture']}", (10, 58))
         text(img, "Fingers: " + "".join(map(str, state["fingers"])), (10, 84), GREY, 0.5)
+    if state["action"]:
+        text(img, state["action"], (10, img.shape[0] - 50), GREEN, 0.9, 2)
 
 
 def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
+    controller = GestureController()
     stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
     last_process = 0.0
     last_hand_seen = time.monotonic()
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
+    action, action_until = "", 0.0
     shown = False
     try:
         while True:
@@ -85,6 +90,10 @@ def run(args):
                     fingers = fingers_up(hand)
                     stable = stability.update(classify(fingers))
                     gesture_name = DISPLAY_NAMES.get(stable, "...")
+                    fired = controller.update(now, stable)
+                    if fired:
+                        action, action_until = fired, now + config.ACTION_FLASH_S
+                        print(fired)
                 else:
                     stability.reset()
 
@@ -92,7 +101,10 @@ def run(args):
                 if now - fps_start >= 1.0:
                     fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
 
-                state = {"fps": fps, "idle": idle, "fingers": fingers, "gesture": gesture_name}
+                state = {
+                    "fps": fps, "idle": idle, "fingers": fingers, "gesture": gesture_name,
+                    "action": action if now < action_until else "",
+                }
                 if hand is not None:
                     draw_hand(frame, hand)
                 draw_overlay(frame, state)

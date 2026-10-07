@@ -41,3 +41,4 @@ GESTURE_COOLDOWN_S = 0.8
 
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"
+ACTION_FLASH_S = 1.0
