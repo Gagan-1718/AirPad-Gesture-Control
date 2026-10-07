@@ -47,6 +47,7 @@ def run(args):
     cap = open_camera(args.camera)
     tracker = HandTracker()
     last_process = 0.0
+    last_hand_seen = time.monotonic()
     fps, fps_count, fps_start = 0.0, 0, time.monotonic()
     shown = False
     try:
@@ -55,7 +56,9 @@ def run(args):
                 print("Camera stopped delivering frames.")
                 break
             now = time.monotonic()
-            if now - last_process >= 1.0 / config.PROCESS_FPS:
+            idle = now - last_hand_seen > config.IDLE_AFTER_S
+            interval = 1.0 / (config.IDLE_FPS if idle else config.PROCESS_FPS)
+            if now - last_process >= interval:
                 last_process = now
                 ok, frame = cap.retrieve()
                 if not ok:
@@ -64,12 +67,13 @@ def run(args):
                     frame = cv2.flip(frame, 1)
                 hand = tracker.process(frame)
                 if hand is not None:
+                    last_hand_seen = now
                     draw_hand(frame, hand)
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
                     fps, fps_count, fps_start = fps_count / (now - fps_start), 0, now
-                text(frame, f"{fps:.0f} fps", (frame.shape[1] - 90, 28), GREY)
+                text(frame, f"{fps:.0f} fps{'  IDLE' if idle else ''}", (frame.shape[1] - 140, 28), GREY)
                 cv2.imshow(config.WINDOW_NAME, frame)
                 shown = True
             key = cv2.waitKey(1) & 0xFF
