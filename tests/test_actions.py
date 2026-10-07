@@ -21,3 +21,15 @@ def test_unmapped_gestures_do_nothing():
     sent = []
     feed(GestureController(sent.append), ["fist", "other", None] * 10)
     assert sent == []
+
+
+def test_holding_palm_fires_only_once():
+    sent = []
+    feed(GestureController(sent.append), ["palm"] * 45)     # 3 seconds
+    assert sent == ["playpause"]
+
+
+def test_palm_fires_again_after_changing_pose():
+    sent = []
+    feed(GestureController(sent.append), ["palm"] * 15 + ["fist"] * 15 + ["palm"] * 15)
+    assert sent == ["playpause", "playpause"]
