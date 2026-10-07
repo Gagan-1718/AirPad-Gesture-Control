@@ -39,3 +39,19 @@ def test_volume_repeats_while_held():
     sent = []
     feed(GestureController(sent.append), ["one"] * 15)      # 1 second
     assert sent == ["volumeup"] * 4
+
+
+def test_swipe_right_skips_to_the_next_track():
+    sent = []
+    ctrl = GestureController(sent.append)
+    assert ctrl.update(1.0, None, "swipe_right") == "Next track"
+    assert sent == ["nexttrack"]
+
+
+def test_swipes_share_a_cooldown():
+    sent = []
+    ctrl = GestureController(sent.append)
+    ctrl.update(1.0, None, "swipe_right")
+    ctrl.update(1.5, None, "swipe_right")
+    ctrl.update(2.1, None, "swipe_right")
+    assert sent == ["nexttrack", "nexttrack"]
