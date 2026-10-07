@@ -1,5 +1,6 @@
-"""Gesture recognition: finger states and static gestures."""
+"""Gesture recognition: finger states, static gestures and hand motion."""
 import math
+from collections import deque
 
 import config
 
@@ -57,3 +58,25 @@ def fingers_up(hand):
 
 def classify(fingers):
     return PATTERNS.get(tuple(fingers[1:]), "other")
+
+
+class MotionTracker:
+    """Wrist position history over the last SWIPE_WINDOW_S seconds."""
+
+    def __init__(self):
+        self._history = deque()     # (t, x, y) in frame fractions
+
+    def reset(self):
+        self._history.clear()
+
+    def clear_history(self):
+        """Forget past motion (used after a swipe)."""
+        self._history.clear()
+
+    def update(self, now, x, y):
+        self._history.append((now, x, y))
+        while self._history and now - self._history[0][0] > config.SWIPE_WINDOW_S:
+            self._history.popleft()
+
+    def _recent(self, now, window_s):
+        return [s for s in self._history if now - s[0] <= window_s]

@@ -40,6 +40,9 @@ STABILITY_REQUIRED = 4
 GESTURE_COOLDOWN_S = 0.8
 VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
 
+# --- Swipes ---------------------------------------------------------------------
+SWIPE_WINDOW_S = 0.4
+
 # --- UI -----------------------------------------------------------------------
 WINDOW_NAME = "AirPad"
 ACTION_FLASH_S = 1.0
