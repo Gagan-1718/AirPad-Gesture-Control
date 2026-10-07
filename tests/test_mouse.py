@@ -1,0 +1,59 @@
+from gestures import fingers_up
+from helpers import FakeOutput, make_hand
+from mouse import MouseController
+
+
+def pinch_hand(cx=320, cy=400):
+    """Thumb tip touching a half-bent index fingertip."""
+    hand = make_hand((0, 0, 0, 0), cx=cx, cy=cy)
+    hand.points[8] = (cx - 25, cy - 125)
+    hand.points[4] = hand.points[8]
+    return hand
+
+
+def right_click_hand(cx=320, cy=400):
+    """Index up, thumb tip touching a half-bent middle fingertip."""
+    hand = make_hand((1, 0, 0, 0), cx=cx, cy=cy)
+    hand.points[12] = (cx, cy - 125)
+    hand.points[4] = hand.points[12]
+    return hand
+
+
+def run(mouse, hands, gesture="one", dt=1 / 30):
+    """Feed hands at 30 fps; return the event labels."""
+    events = []
+    for i, hand in enumerate(hands, start=1):
+        event = mouse.update(i * dt, hand, gesture, fingers_up(hand))
+        if event:
+            events.append(event)
+    return events
+
+
+def test_cursor_follows_the_hand():
+    out = FakeOutput()
+    run(MouseController(out), [make_hand((1, 0, 0, 0), cx=250 + 5 * k) for k in range(30)])
+    moves = [e for e in out.log if e[0] == "move"]
+    assert moves[-1][1] > moves[0][1]
+
+
+def test_pinch_clicks():
+    out = FakeOutput()
+    point = make_hand((1, 0, 0, 0), thumb="out")
+    events = run(MouseController(out), [point] * 5 + [pinch_hand()] * 4 + [point] * 5)
+    assert events == ["Click"]
+    assert out.events() == [("mouse_down",), ("mouse_up",)]
+
+
+def test_right_click():
+    out = FakeOutput()
+    events = run(MouseController(out), [make_hand((1, 0, 0, 0), thumb="out")] * 5 + [right_click_hand()] * 6)
+    assert events == ["Right click"]
+    assert out.events() == [("right_click",)]
+
+
+def test_release_lets_go_of_a_dragged_button():
+    out = FakeOutput()
+    mouse = MouseController(out)
+    run(mouse, [pinch_hand()] * 4)
+    mouse.release()
+    assert out.events() == [("mouse_down",), ("mouse_up",)]
