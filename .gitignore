@@ -5,3 +5,7 @@ __pycache__/
 # Virtual environments
 venv/
 .venv/
+
+# Hand model, downloaded automatically on first run
+models/*.task
+models/*.part
