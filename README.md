@@ -127,3 +127,25 @@ pytest
 ```
 
 Tests use synthetic hand landmarks, so they need no camera.
+
+## Project layout
+
+```
+main.py        main loop, idle mode, preview window
+camera.py      webcam on a background thread (always the freshest frame)
+tracker.py     MediaPipe HandLandmarker wrapper (+ model download)
+gestures.py    finger states, pose classification, swipe & stillness
+smoothing.py   stability filter, cooldowns, cursor smoothing (1 Euro filter)
+mouse.py       cursor, pinch clicks, drag, scrolling
+actions.py     swipes, play/pause, volume -> keys
+config.py      all tunable settings
+tests/         unit tests on synthetic hand landmarks
+docs/          project plan
+```
+
+Media keys and Alt+Tab are designed for Windows. On macOS, change the bindings
+in `actions.py` (for example Cmd+Tab).
+
+## License
+
+MIT, see [LICENSE](LICENSE).
