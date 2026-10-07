@@ -64,8 +64,15 @@ SWIPE_STATIC_BLOCK_S = 0.6  # no static gestures right after a swipe
 PDF_SCROLL_STEP = 120       # mouse-wheel units per repeat (120 = one notch)
 PDF_SCROLL_REPEAT_S = 0.15  # hold index / two fingers to keep scrolling
 
+# --- Mouse mode -----------------------------------------------------------------
+MOUSE_PROCESS_FPS = 30      # smoother cursor; uses more CPU than other modes
+MOUSE_BOX = (0.25, 0.20, 0.75, 0.65)  # frame area (x0, y0, x1, y1) mapped to the
+                                      # whole screen; smaller box = faster cursor
+MOUSE_SMOOTH_MIN_CUTOFF = 1.0  # lower = steadier cursor when still, more lag
+MOUSE_SMOOTH_BETA = 0.01       # higher = less lag when moving fast
+
 # --- Modes --------------------------------------------------------------------
-MODES = ["media", "slides", "pdf", "game"]
+MODES = ["media", "slides", "pdf", "mouse", "game"]
 START_MODE = "media"
 
 # --- UI -----------------------------------------------------------------------

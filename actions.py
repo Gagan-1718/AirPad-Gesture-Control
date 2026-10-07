@@ -6,6 +6,7 @@ Firing rules:
 - Repeat actions (volume, PDF scrolling) keep firing every `repeat_s` while held.
 - Static gestures need the hand roughly still (unless `require_still=False`),
   so moving your hand for a swipe does not also fire a static gesture.
+Mouse mode's cursor control lives in mouse.py; here it only gets mode switching.
 """
 from dataclasses import dataclass
 
@@ -27,15 +28,21 @@ class Output:
     def scroll(self, amount):
         pyautogui.scroll(amount)    # Windows: 120 units = one wheel notch
 
+    def move(self, x, y):
+        pyautogui.moveTo(x, y)
+
 
 class DryRunOutput(Output):
-    """Prints actions instead of sending them."""
+    """Prints actions instead of sending them. The cursor is not moved."""
 
     def press(self, key):
         print(f"[dry-run] press {key}")
 
     def scroll(self, amount):
         print(f"[dry-run] scroll {amount}")
+
+    def move(self, x, y):
+        pass
 
 
 @dataclass(frozen=True)
@@ -56,6 +63,7 @@ def scroll(amount):
     return ("scroll", amount)
 
 
+# Modes without swipe bindings (mouse) ignore swipes entirely.
 SWIPE_BINDINGS = {
     "media": {"swipe_right": Binding(press("nexttrack"), "Next track"),
               "swipe_left": Binding(press("prevtrack"), "Previous track")},
@@ -63,6 +71,7 @@ SWIPE_BINDINGS = {
                "swipe_left": Binding(press("left"), "Previous slide")},
     "pdf": {"swipe_right": Binding(press("pagedown"), "Next page"),
             "swipe_left": Binding(press("pageup"), "Previous page")},
+    "mouse": {},
     "game": {"swipe_right": Binding(press("right"), "Move right"),
              "swipe_left": Binding(press("left"), "Move left")},
 }
@@ -78,6 +87,7 @@ STATIC_BINDINGS = {
         "one": Binding(scroll(-config.PDF_SCROLL_STEP), "Scroll down", repeat_s=config.PDF_SCROLL_REPEAT_S),
         "two": Binding(scroll(config.PDF_SCROLL_STEP), "Scroll up", repeat_s=config.PDF_SCROLL_REPEAT_S),
     },
+    "mouse": {},
     "game": {
         "fist": Binding(press("space"), "Jump", cooldown_s=config.JUMP_COOLDOWN_S, require_still=False),
     },
@@ -115,7 +125,7 @@ class GestureController:
         gesture: stable static gesture (or None); still: hand roughly still;
         swipe: "swipe_left" / "swipe_right" / None.
         """
-        if swipe:
+        if swipe and SWIPE_BINDINGS[self.mode]:
             return self._handle_swipe(now, gesture, swipe)
 
         if gesture is not None and self._latched is _LATCH_NEXT:
