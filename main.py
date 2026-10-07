@@ -8,6 +8,10 @@ import sys
 import cv2
 
 import config
+from tracker import HAND_CONNECTIONS, HandTracker
+
+GREEN = (80, 220, 100)
+GREY = (160, 160, 160)
 
 
 def open_camera(index):
@@ -24,8 +28,17 @@ def open_camera(index):
     return cap
 
 
+def draw_hand(img, hand):
+    pts = [(int(x), int(y)) for x, y in hand.points]
+    for a, b in HAND_CONNECTIONS:
+        cv2.line(img, pts[a], pts[b], GREY, 2, cv2.LINE_AA)
+    for p in pts:
+        cv2.circle(img, p, 4, GREEN, -1, cv2.LINE_AA)
+
+
 def run(args):
     cap = open_camera(args.camera)
+    tracker = HandTracker()
     try:
         while True:
             ok, frame = cap.read()
@@ -34,6 +47,9 @@ def run(args):
                 break
             if config.MIRROR:
                 frame = cv2.flip(frame, 1)
+            hand = tracker.process(frame)
+            if hand is not None:
+                draw_hand(frame, hand)
             cv2.imshow(config.WINDOW_NAME, frame)
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
@@ -42,6 +58,7 @@ def run(args):
                 break               # window closed with the X button
     finally:
         cap.release()
+        tracker.close()
         cv2.destroyAllWindows()
 
 

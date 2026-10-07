@@ -15,6 +15,8 @@ from mediapipe.tasks.python import BaseOptions, vision
 
 import config
 
+HAND_CONNECTIONS = [(c.start, c.end) for c in vision.HandLandmarksConnections.HAND_CONNECTIONS]
+
 
 @dataclass
 class Hand:
