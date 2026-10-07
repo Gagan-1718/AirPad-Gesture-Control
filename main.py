@@ -1,6 +1,7 @@
 """AirPad: control your laptop with hand gestures.
 
 Keys (with the AirPad window focused): q / Esc = quit.
+Run with --dry-run to see gestures without sending any key presses.
 """
 import argparse
 import sys
@@ -9,7 +10,7 @@ import time
 import cv2
 
 import config
-from actions import GestureController
+from actions import GestureController, press_key
 from gestures import DISPLAY_NAMES, classify, fingers_up, hand_size
 from smoothing import StabilityFilter
 from tracker import HAND_CONNECTIONS, HandTracker
@@ -57,9 +58,10 @@ def draw_overlay(img, state):
 
 
 def run(args):
+    send = (lambda key: print(f"[dry-run] {key}")) if args.dry_run else press_key
     cap = open_camera(args.camera)
     tracker = HandTracker()
-    controller = GestureController()
+    controller = GestureController(send)
     stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
     last_process = 0.0
     last_hand_seen = time.monotonic()
@@ -124,6 +126,7 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser(description="Control your laptop with hand gestures.")
     parser.add_argument("--camera", type=int, default=config.CAMERA_INDEX, help="camera index")
+    parser.add_argument("--dry-run", action="store_true", help="print actions instead of pressing keys")
     run(parser.parse_args())
 
 
