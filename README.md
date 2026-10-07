@@ -58,6 +58,23 @@ where you aim.
 - **PowerPoint slideshow:** palm swipes change slides. A pinch-click also
   advances, like a mouse click.
 
+## How it works
+
+1. **Camera thread** (`camera.py`) keeps only the newest webcam frame, so
+   nothing waits in a buffer.
+2. **Hand tracking** (`tracker.py`) runs MediaPipe HandLandmarker in video
+   mode and returns 21 landmarks per frame.
+3. **Pose** (`gestures.py`): a finger is "up" when its tip is further from the
+   wrist than its middle joint. Distances are measured in hand sizes, so it
+   works near or far and with a tilted hand. A pose only counts once it wins
+   3 of the last 4 frames.
+4. **Motion** (`gestures.py`): a short history of wrist positions detects
+   swipes, which hand shape made them, and whether the hand is still.
+5. **Cursor** (`mouse.py`): relative movement with acceleration, smoothed by a
+   1 Euro filter. Pinches press and release the mouse button.
+6. **Actions** (`actions.py`): swipes and held poses become key presses, with
+   cooldowns and "fire once per pose" latching so nothing repeats by accident.
+
 ## Install
 
 Python 3.10 or newer (tested on 3.14 with MediaPipe 1.1).
