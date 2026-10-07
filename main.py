@@ -5,6 +5,8 @@ q / Esc = quit.
 Run with --dry-run to see gestures without sending any key presses.
 """
 import argparse
+import ctypes
+import sys
 import time
 
 import cv2
@@ -75,6 +77,8 @@ def status_panel(state):
 
 
 def run(args):
+    if sys.platform == "win32":
+        ctypes.windll.winmm.timeBeginPeriod(1)   # 1 ms timers: waitKey(1) really waits ~1 ms
     output = DryRunOutput() if args.dry_run else Output()
     camera = Camera(args.camera)
     tracker = HandTracker()
@@ -179,6 +183,8 @@ def run(args):
         camera.close()
         tracker.close()
         cv2.destroyAllWindows()
+        if sys.platform == "win32":
+            ctypes.windll.winmm.timeEndPeriod(1)
 
 
 def main():
