@@ -11,9 +11,10 @@ CAMERA_FPS = 30
 MIRROR = True               # flip like a mirror so "swipe right" means your right
 
 # --- CPU budget ---------------------------------------------------------------
-PROCESS_FPS = 30            # hand-tracking rate while a hand is visible
-IDLE_FPS = 3                # rate when no hand has been seen for IDLE_AFTER_S
-IDLE_AFTER_S = 2.0
+# With a hand in view every camera frame is processed (~30 fps) for a lag-free
+# cursor. With no hand for IDLE_AFTER_S it drops to IDLE_FPS to keep the laptop cool.
+IDLE_FPS = 5
+IDLE_AFTER_S = 1.5
 
 # --- Preview window -------------------------------------------------------------
 SHOW_PREVIEW = True         # 'v' toggles between preview and a tiny status panel

@@ -85,9 +85,8 @@ def run(args):
         while True:
             now = time.monotonic()
             idle = now - last_hand_seen > config.IDLE_AFTER_S
-            interval = 1.0 / (config.IDLE_FPS if idle else config.PROCESS_FPS)
-            if now - last_process < interval:
-                key = cv2.waitKey(5) & 0xFF       # rest until the next frame is due
+            if idle and now - last_process < 1.0 / config.IDLE_FPS:
+                key = cv2.waitKey(20) & 0xFF      # rest between idle checks
             else:
                 frame = camera.read()             # waits for the next fresh frame
                 if frame is None:
