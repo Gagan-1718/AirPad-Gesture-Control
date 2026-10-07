@@ -99,3 +99,16 @@ def test_blurred_swipe_still_latches_the_final_pose():
     frames = ["palm"] * 3 + [(None, False, "swipe_right")] + ["palm"] * 30
     feed(GestureController(sent.append), frames)
     assert sent == ["nexttrack"]
+
+
+def test_holding_three_fingers_switches_mode_once():
+    ctrl = GestureController(lambda key: None)
+    fired = feed(ctrl, ["three"] * 60)                      # 4 seconds
+    assert fired == ["Mode: Slides"]
+    assert ctrl.mode == "slides"
+
+
+def test_short_three_finger_hold_does_not_switch():
+    ctrl = GestureController(lambda key: None)
+    feed(ctrl, ["three"] * 15 + [None] * 5)                # 1 second
+    assert ctrl.mode == "media"
