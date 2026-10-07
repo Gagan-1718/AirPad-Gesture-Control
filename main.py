@@ -17,6 +17,7 @@ from tracker import HAND_CONNECTIONS, HandTracker
 
 GREEN = (80, 220, 100)
 WHITE = (255, 255, 255)
+YELLOW = (0, 220, 255)
 GREY = (160, 160, 160)
 
 
@@ -48,13 +49,17 @@ def draw_hand(img, hand):
 
 
 def draw_overlay(img, state):
-    w = img.shape[1]
+    h, w = img.shape[:2]
+    text(img, f"Mode: {state['mode'].title()}", (10, 28), YELLOW, 0.8, 2)
     text(img, f"{state['fps']:.0f} fps{'  IDLE' if state['idle'] else ''}", (w - 140, 28), GREY)
     if state["fingers"] is not None:
         text(img, f"Gesture: {state['gesture']}", (10, 58))
         text(img, "Fingers: " + "".join(map(str, state["fingers"])), (10, 84), GREY, 0.5)
     if state["action"]:
-        text(img, state["action"], (10, img.shape[0] - 50), GREEN, 0.9, 2)
+        text(img, state["action"], (10, h - 50), GREEN, 0.9, 2)
+    if state["hold"] > 0:
+        cv2.rectangle(img, (10, h - 30), (10 + int((w - 20) * state["hold"]), h - 18), YELLOW, -1)
+        cv2.rectangle(img, (10, h - 30), (w - 10, h - 18), WHITE, 1)
 
 
 def run(args):
@@ -116,6 +121,7 @@ def run(args):
                 state = {
                     "fps": fps, "idle": idle, "fingers": fingers, "gesture": gesture_name,
                     "action": action if now < action_until else "",
+                    "mode": controller.mode, "hold": controller.hold_progress,
                 }
                 if hand is not None:
                     draw_hand(frame, hand)
