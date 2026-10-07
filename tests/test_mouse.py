@@ -79,3 +79,10 @@ def test_two_fingers_scroll_and_freeze_the_cursor():
     run(MouseController(out), hands, gesture="two")
     assert sum(e[1] for e in out.log if e[0] == "scroll") > 0
     assert not [e for e in out.log if e[0] == "move"]
+
+
+def test_cursor_stays_off_the_screen_corners():
+    out = FakeOutput()
+    run(MouseController(out), [make_hand((1, 0, 0, 0), cx=40, cy=200)] * 60)
+    x, y = [e for e in out.log if e[0] == "move"][-1][1:]
+    assert x >= 2 and y >= 2

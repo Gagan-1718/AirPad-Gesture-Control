@@ -17,6 +17,7 @@ from smoothing import OneEuroFilter
 
 WRIST, THUMB_TIP, INDEX_MCP = 0, 4, 5
 INDEX_PIP, INDEX_TIP, MIDDLE_PIP, MIDDLE_TIP = 6, 8, 10, 12
+EDGE = 2   # keep off the exact screen corners (pyautogui fail-safe zone)
 
 
 def _dist(a, b):
@@ -85,8 +86,8 @@ class MouseController:
         x0, y0, x1, y1 = config.MOUSE_BOX
         sx = min(max((nx - x0) / (x1 - x0), 0.0), 1.0) * (self._screen_w - 1)
         sy = min(max((ny - y0) / (y1 - y0), 0.0), 1.0) * (self._screen_h - 1)
-        x = int(self._fx(now, sx))
-        y = int(self._fy(now, sy))
+        x = int(min(max(self._fx(now, sx), EDGE), self._screen_w - 1 - EDGE))
+        y = int(min(max(self._fy(now, sy), EDGE), self._screen_h - 1 - EDGE))
         if (x, y) != self._last_pos:
             self._out.move(x, y)
             self._last_pos = (x, y)
