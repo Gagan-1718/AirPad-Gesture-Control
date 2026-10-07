@@ -32,6 +32,8 @@ MIN_HAND_SIZE = 0.05        # frame-height fraction; smaller hands (far away /
 # Rotation-independent, unlike comparing raw y values.
 FINGER_EXTENDED_RATIO = 1.15
 THUMB_OUT_RATIO = 0.6       # hand sizes from thumb tip to middle-finger base
+THUMB_VERTICAL = 0.45       # hand sizes the thumb tip must be above / below its
+                            # base for thumbs-up / thumbs-down
 
 # --- Stability filter (gesture must win `required` of the last `window` frames)
 STABILITY_WINDOW = 5

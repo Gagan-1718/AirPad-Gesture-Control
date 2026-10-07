@@ -5,17 +5,16 @@ from collections import deque
 import config
 
 WRIST = 0
-THUMB_IP, THUMB_TIP = 3, 4
+THUMB_MCP, THUMB_IP, THUMB_TIP = 2, 3, 4
+INDEX_TIP = 8
 MIDDLE_MCP = 9
 PINKY_MCP = 17
 FINGER_TIPS = (8, 12, 16, 20)   # index, middle, ring, pinky
 FINGER_PIPS = (6, 10, 14, 18)
 
-# (index, middle, ring, pinky) -> gesture. The thumb is deliberately ignored:
-# it is the least reliable landmark and none of these shapes need it.
+# (index, middle, ring, pinky) -> pose. Fist is split by the thumb in classify().
 PATTERNS = {
     (1, 1, 1, 1): "palm",
-    (0, 0, 0, 0): "fist",
     (1, 0, 0, 0): "point",
     (1, 1, 0, 0): "two",
     (1, 1, 1, 0): "three",
@@ -27,6 +26,8 @@ DISPLAY_NAMES = {
     "point": "Point",
     "two": "Two fingers",
     "three": "Three fingers",
+    "thumb_up": "Thumbs up",
+    "thumb_down": "Thumbs down",
     "other": "Unknown",
     "swipe_left": "Swipe left",
     "swipe_right": "Swipe right",
@@ -58,8 +59,20 @@ def fingers_up(hand):
     return [int(thumb)] + [int(f) for f in others]
 
 
-def classify(fingers):
-    return PATTERNS.get(tuple(fingers[1:]), "other")
+def classify(hand, fingers):
+    key = tuple(fingers[1:])
+    if key == (0, 0, 0, 0):
+        pts = hand.points
+        size = hand_size(hand) or 1e-6
+        # Thumbs up/down: thumb out, pointing up or down, and not pinching the index.
+        if fingers[0] and _dist(pts[THUMB_TIP], pts[INDEX_TIP]) > 0.5 * size:
+            rise = (pts[THUMB_TIP][1] - pts[THUMB_MCP][1]) / size
+            if rise < -config.THUMB_VERTICAL:
+                return "thumb_up"
+            if rise > config.THUMB_VERTICAL:
+                return "thumb_down"
+        return "fist"
+    return PATTERNS.get(key, "other")
 
 
 class MotionTracker:

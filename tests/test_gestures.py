@@ -41,7 +41,20 @@ def test_detection_works_on_a_tilted_hand(angle):
 ])
 @pytest.mark.parametrize("thumb", ["in", "out"])
 def test_classify_ignores_the_thumb(fingers, pose, thumb):
-    assert classify(fingers_up(make_hand(fingers, thumb))) == pose
+    hand = make_hand(fingers, thumb)
+    assert classify(hand, fingers_up(hand)) == pose
+
+
+@pytest.mark.parametrize("thumb, pose", [("up", "thumb_up"), ("down", "thumb_down"), ("in", "fist")])
+def test_thumbs_up_and_down(thumb, pose):
+    hand = make_hand((0, 0, 0, 0), thumb)
+    assert classify(hand, fingers_up(hand)) == pose
+
+
+def test_pinch_with_curled_fingers_is_not_thumbs_up():
+    hand = make_hand((0, 0, 0, 0), "up")
+    hand.points[8] = hand.points[4]          # thumb tip touching the index tip
+    assert classify(hand, fingers_up(hand)) != "thumb_up"
 
 
 def track(motion, points, dt=1 / 15):

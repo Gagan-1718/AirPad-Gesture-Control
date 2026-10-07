@@ -124,7 +124,7 @@ def run(args):
                     last_hand_seen = now
                     had_hand = True
                     fingers = fingers_up(hand)
-                    stable = stability.update(classify(fingers))
+                    stable = stability.update(classify(hand, fingers))
                     motion.update(now, *hand.norm(0))
                     swipe = motion.detect_swipe(now)
                     if swipe:

@@ -17,6 +17,8 @@ class FakeHand:
 THUMBS = {
     "in": [(-45, -50), (-30, -70), (-5, -75)],      # tucked across the palm
     "out": [(-60, -45), (-85, -60), (-110, -70)],   # spread sideways
+    "up": [(-45, -60), (-50, -110), (-50, -160)],   # thumbs up
+    "down": [(-45, -20), (-50, 25), (-50, 75)],     # thumbs down
 }
 
 
