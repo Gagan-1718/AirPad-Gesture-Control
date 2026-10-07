@@ -60,8 +60,12 @@ SWIPE_COOLDOWN_S = 1.0      # applies to both directions
 SWIPE_REVERSE_BLOCK_S = 1.5 # ignore the "return stroke" after a swipe
 SWIPE_STATIC_BLOCK_S = 0.6  # no static gestures right after a swipe
 
+# --- PDF mode -------------------------------------------------------------------
+PDF_SCROLL_STEP = 120       # mouse-wheel units per repeat (120 = one notch)
+PDF_SCROLL_REPEAT_S = 0.15  # hold index / two fingers to keep scrolling
+
 # --- Modes --------------------------------------------------------------------
-MODES = ["media", "slides", "game"]
+MODES = ["media", "slides", "pdf", "game"]
 START_MODE = "media"
 
 # --- UI -----------------------------------------------------------------------

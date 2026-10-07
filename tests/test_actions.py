@@ -121,3 +121,13 @@ def test_game_mode_jumps_on_each_fist():
     ctrl.mode = "game"
     feed(ctrl, (["fist"] * 4 + ["palm"] * 4) * 3)
     assert out.keys() == ["space"] * 3
+
+
+def test_pdf_mode_turns_pages_and_scrolls():
+    out = FakeOutput()
+    ctrl = GestureController(out)
+    ctrl.mode = "pdf"
+    feed(ctrl, ["one"] * 5)
+    ctrl.update(10.0, None, False, "swipe_right")
+    assert out.log[0] == ("scroll", -120)
+    assert out.log[-1] == ("press", "pagedown")

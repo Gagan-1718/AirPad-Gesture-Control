@@ -3,7 +3,7 @@
 Firing rules:
 - One-shot actions (play/pause, jump, swipes) fire once, then "latch": holding the
   gesture does not repeat it. Change gesture or remove the hand to re-arm.
-- Repeat actions (volume) keep firing every `repeat_s` while held.
+- Repeat actions (volume, PDF scrolling) keep firing every `repeat_s` while held.
 - Static gestures need the hand roughly still (unless `require_still=False`),
   so moving your hand for a swipe does not also fire a static gesture.
 """
@@ -24,6 +24,9 @@ class Output:
     def press(self, key):
         pyautogui.press(key)
 
+    def scroll(self, amount):
+        pyautogui.scroll(amount)    # Windows: 120 units = one wheel notch
+
 
 class DryRunOutput(Output):
     """Prints actions instead of sending them."""
@@ -31,10 +34,13 @@ class DryRunOutput(Output):
     def press(self, key):
         print(f"[dry-run] press {key}")
 
+    def scroll(self, amount):
+        print(f"[dry-run] scroll {amount}")
+
 
 @dataclass(frozen=True)
 class Binding:
-    action: tuple                   # ("press", key)
+    action: tuple                   # ("press", key) or ("scroll", amount)
     label: str
     hold_s: float = 0.0             # gesture must be held (still) this long
     cooldown_s: float = config.GESTURE_COOLDOWN_S
@@ -46,11 +52,17 @@ def press(key):
     return ("press", key)
 
 
+def scroll(amount):
+    return ("scroll", amount)
+
+
 SWIPE_BINDINGS = {
     "media": {"swipe_right": Binding(press("nexttrack"), "Next track"),
               "swipe_left": Binding(press("prevtrack"), "Previous track")},
     "slides": {"swipe_right": Binding(press("right"), "Next slide"),
                "swipe_left": Binding(press("left"), "Previous slide")},
+    "pdf": {"swipe_right": Binding(press("pagedown"), "Next page"),
+            "swipe_left": Binding(press("pageup"), "Previous page")},
     "game": {"swipe_right": Binding(press("right"), "Move right"),
              "swipe_left": Binding(press("left"), "Move left")},
 }
@@ -62,6 +74,10 @@ STATIC_BINDINGS = {
         "two": Binding(press("volumedown"), "Volume down", repeat_s=config.VOLUME_REPEAT_S),
     },
     "slides": {},
+    "pdf": {
+        "one": Binding(scroll(-config.PDF_SCROLL_STEP), "Scroll down", repeat_s=config.PDF_SCROLL_REPEAT_S),
+        "two": Binding(scroll(config.PDF_SCROLL_STEP), "Scroll up", repeat_s=config.PDF_SCROLL_REPEAT_S),
+    },
     "game": {
         "fist": Binding(press("space"), "Jump", cooldown_s=config.JUMP_COOLDOWN_S, require_still=False),
     },
@@ -121,7 +137,7 @@ class GestureController:
             self.mode = modes[(modes.index(self.mode) + 1) % len(modes)]
             self._latched = gesture
             self.hold_progress = 0.0
-            return f"Mode: {self.mode.title()}"
+            return f"Mode: {'PDF' if self.mode == 'pdf' else self.mode.title()}"
 
         binding = STATIC_BINDINGS[self.mode].get(gesture)
         if binding is None or held < binding.hold_s or not self._cooldowns.ready(gesture, now):
