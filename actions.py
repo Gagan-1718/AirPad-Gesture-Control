@@ -1,4 +1,4 @@
-"""Maps gestures to key presses per mode.
+"""Maps gestures to key presses per mode, plus mode switching.
 
 Firing rules:
 - One-shot actions (play/pause, swipes) fire once, then "latch": holding the
@@ -49,6 +49,7 @@ def press_key(key):
     pyautogui.press(key)
 
 
+MODE_SWITCH = "three"
 _LATCH_NEXT = object()   # latch whichever gesture is seen next
 
 
@@ -62,10 +63,12 @@ class GestureController:
         self._hold_start = 0.0
         self._static_block_until = 0.0
         self._last_swipe = None       # (direction, time)
+        self.hold_progress = 0.0      # 0..1 for the mode-switch progress bar
 
     def hand_lost(self):
         self._latched = None
         self._hold_label = None
+        self.hold_progress = 0.0
 
     def update(self, now, gesture, still, swipe):
         """Feed one processed frame. Returns the fired action label, or None.
@@ -81,10 +84,21 @@ class GestureController:
         elif gesture is not None and gesture != self._latched:
             self._latched = None
         self._update_hold(now, gesture, still)
+        self.hold_progress = 0.0
 
         if gesture is None or gesture == self._latched or now < self._static_block_until:
             return None
         held = now - self._hold_start
+
+        if gesture == MODE_SWITCH:
+            self.hold_progress = min(held / config.MODE_SWITCH_HOLD_S, 1.0)
+            if held < config.MODE_SWITCH_HOLD_S:
+                return None
+            modes = config.MODES
+            self.mode = modes[(modes.index(self.mode) + 1) % len(modes)]
+            self._latched = gesture
+            self.hold_progress = 0.0
+            return f"Mode: {self.mode.title()}"
 
         binding = STATIC_BINDINGS[self.mode].get(gesture)
         if binding is None or held < binding.hold_s or not self._cooldowns.ready(gesture, now):
@@ -104,13 +118,15 @@ class GestureController:
             self._hold_start = now
             return
         binding = STATIC_BINDINGS[self.mode].get(gesture)
-        if binding is not None and binding.require_still and not still:
+        needs_still = gesture == MODE_SWITCH or (binding is not None and binding.require_still)
+        if needs_still and not still:
             self._hold_start = now
 
     def _handle_swipe(self, now, gesture, swipe):
         # Whatever shape the hand ends the swipe in must not fire on its own.
         self._latched = gesture if gesture is not None else _LATCH_NEXT
         self._hold_label = None
+        self.hold_progress = 0.0
         self._static_block_until = now + config.SWIPE_STATIC_BLOCK_S
 
         if self._last_swipe is not None:

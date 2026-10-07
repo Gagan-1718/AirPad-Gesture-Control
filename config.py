@@ -45,6 +45,7 @@ GESTURE_COOLDOWN_S = 0.8
 PLAYPAUSE_HOLD_S = 0.3      # palm must be held still briefly (avoids firing
                             # when you raise an open hand to swipe)
 VOLUME_REPEAT_S = 0.25      # hold one/two fingers to keep changing volume
+MODE_SWITCH_HOLD_S = 1.5
 
 # --- Swipes ---------------------------------------------------------------------
 SWIPE_WINDOW_S = 0.4
