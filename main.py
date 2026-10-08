@@ -1,6 +1,7 @@
 """AirPad: use your laptop with hand gestures, like an air touchpad.
 
-Keys (with the AirPad window focused): v = toggle preview, q / Esc = quit.
+Keys (with the AirPad window focused): p = pause / resume, v = toggle preview,
+q / Esc = quit.
 Run with --dry-run to see gestures without sending any input.
 """
 import argparse
@@ -171,6 +172,11 @@ def run(args):
                 break
             if key == ord("v"):
                 show_preview = not show_preview
+            if key == ord("p"):
+                action, action_until = pause.flip(), time.monotonic() + config.ACTION_FLASH_S
+                print(action)
+                controller.hand_lost()
+                mouse.release()
             if shown and cv2.getWindowProperty(config.WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break               # window closed with the X button
     finally:
