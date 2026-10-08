@@ -84,7 +84,7 @@ def test_slow_move_is_not_a_swipe():
 
 
 def test_diagonal_move_is_not_a_swipe():
-    assert track(MotionTracker(), [(0.3, 0.3)] * 6 + move(0.3, 0.6, 4, 0.3, 0.8)) is None
+    assert track(MotionTracker(), [(0.3, 0.3)] * 6 + move(0.3, 0.65, 4, 0.3, 0.65)) is None
 
 
 def test_hand_entering_from_the_edge_is_not_a_swipe():
@@ -112,3 +112,17 @@ def test_swipe_reports_the_majority_pose():
     for i, (x, y) in enumerate([(0.3, 0.5)] * 6 + move(0.3, 0.7, 4), start=1):
         m.update(i / 15, x, y, "other" if i == 8 else "two")      # one blurry frame
     assert m.detect_swipe(10 / 15) == ("swipe_right", "two")
+
+
+def test_fast_move_up_is_a_swipe_up():
+    points = [(0.5, 0.7)] * 6 + move(0.5, 0.5, 4, 0.7, 0.35)
+    assert track(MotionTracker(), points, pose="point") == ("swipe_up", "point")
+
+
+def test_fast_move_down_is_a_swipe_down():
+    points = [(0.5, 0.35)] * 6 + move(0.5, 0.5, 4, 0.35, 0.7)
+    assert track(MotionTracker(), points, pose="point") == ("swipe_down", "point")
+
+
+def test_slow_move_up_is_not_a_swipe():
+    assert track(MotionTracker(), [(0.5, 0.7)] * 6 + move(0.5, 0.5, 30, 0.7, 0.35), pose="point") is None

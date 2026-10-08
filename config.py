@@ -84,6 +84,7 @@ GESTURE_COOLDOWN_S = 0.8
 # --- Swipes ---------------------------------------------------------------------
 SWIPE_WINDOW_S = 0.4
 SWIPE_THRESHOLD = 0.20      # frame-width fraction the hand must travel
+SWIPE_V_THRESHOLD = 0.25    # frame-height fraction for up / down flicks
 SWIPE_MAX_SLOPE = 0.6       # vertical / horizontal movement allowed
 SWIPE_ARM_S = 0.2           # ignore movement right after a hand appears
 SWIPE_COOLDOWN_S = 0.7      # applies to both directions

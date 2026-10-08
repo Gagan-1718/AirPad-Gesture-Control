@@ -102,8 +102,9 @@ class MotionTracker:
     def detect_swipe(self, now):
         """Return (direction, pose) for a swipe, else None.
 
-        direction is "swipe_left" / "swipe_right"; pose is the hand shape held
-        during most of the swipe (blurry frames mid-swipe are outvoted).
+        direction is "swipe_left" / "swipe_right" / "swipe_up" / "swipe_down";
+        pose is the hand shape held during most of the swipe (blurry frames
+        mid-swipe are outvoted).
         """
         if self._first_seen is None:
             return None
@@ -112,13 +113,20 @@ class MotionTracker:
         if len(samples) < 3:
             return None
         _, x_now, y_now, _ = samples[-1]
-        lowest = min(samples, key=lambda s: s[1])
-        highest = max(samples, key=lambda s: s[1])
+        leftmost = min(samples, key=lambda s: s[1])
+        rightmost = max(samples, key=lambda s: s[1])
+        top = min(samples, key=lambda s: s[2])
+        bottom = max(samples, key=lambda s: s[2])
 
-        for direction, start, dx in (("swipe_right", lowest, x_now - lowest[1]),
-                                     ("swipe_left", highest, highest[1] - x_now)):
-            dy = abs(y_now - start[2])
-            if dx > config.SWIPE_THRESHOLD and dy < config.SWIPE_MAX_SLOPE * dx:
+        # (direction, start sample, travel along the swipe, travel across it, threshold)
+        candidates = (
+            ("swipe_right", leftmost, x_now - leftmost[1], abs(y_now - leftmost[2]), config.SWIPE_THRESHOLD),
+            ("swipe_left", rightmost, rightmost[1] - x_now, abs(y_now - rightmost[2]), config.SWIPE_THRESHOLD),
+            ("swipe_up", bottom, bottom[2] - y_now, abs(x_now - bottom[1]), config.SWIPE_V_THRESHOLD),
+            ("swipe_down", top, y_now - top[2], abs(x_now - top[1]), config.SWIPE_V_THRESHOLD),
+        )
+        for direction, _, along, across, threshold in candidates:
+            if along > threshold and across < config.SWIPE_MAX_SLOPE * along:
                 poses = Counter(s[3] for s in samples if s[3] is not None)
                 pose = poses.most_common(1)[0][0] if poses else None
                 return direction, pose
