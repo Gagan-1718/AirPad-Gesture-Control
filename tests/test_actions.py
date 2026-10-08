@@ -118,3 +118,10 @@ def test_brief_thumbs_up_does_not_change_the_volume():
     out = FakeOutput()
     feed(GestureController(out), ["thumb_up"] * 5 + ["fist"] * 10)
     assert out.keys() == []
+
+
+def test_swipe_with_no_binding_for_its_direction_is_ignored():
+    out = FakeOutput()
+    ctrl = GestureController(out)
+    assert ctrl.update(1.0, "two", False, ("swipe_up", "two")) is None
+    assert out.log == []

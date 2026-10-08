@@ -108,7 +108,6 @@ SWIPE_BINDINGS = {
     ("three", "swipe_right"): Binding(hotkey("alt", "tab"), "Switch app"),
     ("three", "swipe_left"): Binding(hotkey("alt", "tab"), "Switch app"),
 }
-SWIPE_POSES = {pose for pose, _ in SWIPE_BINDINGS}
 
 STATIC_BINDINGS = {
     "palm": Binding(press("playpause"), "Play / Pause", hold_s=config.PLAYPAUSE_HOLD_S),
@@ -147,7 +146,7 @@ class GestureController:
         pose: stable pose (or None); still: hand roughly still;
         swipe: (direction, pose) from MotionTracker.detect_swipe, or None.
         """
-        if swipe and swipe[1] in SWIPE_POSES:
+        if swipe and (swipe[1], swipe[0]) in SWIPE_BINDINGS:
             return self._handle_swipe(now, pose, swipe)
 
         if pose is not None and self._latched is _LATCH_NEXT:
