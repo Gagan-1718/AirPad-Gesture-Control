@@ -155,3 +155,13 @@ def test_still_hand_does_not_jitter_the_cursor():
     run(MouseController(out), hands)
     xs = [e[1] for e in moves(out)] or [1500]
     assert max(xs) - min(xs) <= 6
+
+
+def test_rewind_puts_the_cursor_back():
+    out = FakeOutput()
+    mouse = MouseController(out)
+    run(mouse, [point()] * 10)
+    run(mouse, [point(cy=400 - 15 * k) for k in range(1, 8)], t0=10 / 30)
+    assert out.position() != (1500, 900)
+    mouse.rewind(10 / 30)
+    assert out.position() == (1500, 900)

@@ -13,6 +13,7 @@ The cursor follows the index-finger knuckle (landmark 5), not the fingertip,
 and slows down as your fingers approach a pinch, so clicks land where you aim.
 """
 import math
+from collections import deque
 
 import pyautogui
 
@@ -51,6 +52,7 @@ class MouseController:
         self._moving = False          # current pose drives the cursor
         self._ref = None              # last filtered hand position (x, y, t)
         self._pos = (0.0, 0.0)        # cursor position with sub-pixel precision
+        self._trail = deque(maxlen=90)  # recent (time, position), for rewind()
         self._button_down = False
         self._down_at = 0.0
         self._pinch_frames = 0
@@ -115,6 +117,7 @@ class MouseController:
         if self._ref is None:
             self._ref = (fx, fy, now)
             self._pos = self._out.position()
+            self._trail.append((now, self._pos))
             return
         rx, ry, rt = self._ref
         self._ref = (fx, fy, now)
@@ -136,6 +139,18 @@ class MouseController:
         if (int(x), int(y)) != (int(self._pos[0]), int(self._pos[1])):
             self._out.move(int(x), int(y))
         self._pos = (x, y)
+        self._trail.append((now, self._pos))
+
+    def rewind(self, since):
+        """Put the cursor back where it was at time `since` (undoes a flick)."""
+        if not self._trail:
+            return
+        before = [pos for t, pos in self._trail if t <= since]
+        x, y = before[-1] if before else self._trail[0][1]
+        self._out.move(int(x), int(y))
+        self._pos = (x, y)
+        self._trail.clear()
+        self._lift()
 
     def _buttons(self, now, pinch, right, fingers):
         if self._button_down:
