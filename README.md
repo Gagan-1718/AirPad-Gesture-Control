@@ -38,6 +38,16 @@ where you aim.
 | ✌️ Two fingers | Browser forward (Alt+→) | Browser back (Alt+←) |
 | 🤟 Three fingers (index + middle + ring) | Switch to last app (Alt+Tab) | Switch to last app |
 
+### Page turning (index finger flick)
+
+| Gesture | Action |
+|---|---|
+| ☝️ Index finger, flick **up** | Next page / slide (Page Down) |
+| ☝️ Index finger, flick **down** | Previous page / slide (Page Up) |
+
+The cursor snaps back to where it was, so a flick never moves it. Slow index
+movements still move the cursor as usual.
+
 ### Media
 
 | Gesture | Action |
@@ -56,9 +66,9 @@ where you aim.
 - Bringing your hand back after a swipe is ignored, so "next, next, next" works.
 - Swipes and keys go to the **focused window**. Pinch-click a window first to
   focus it, just like with a mouse.
-- **PDFs:** palm swipes send the arrow keys. For one swipe = one page, set the
-  viewer to fit a whole page (Edge/Chrome PDF viewer: `Ctrl + \`). Or scroll
-  with two fingers.
+- **PDFs:** flick the index finger up / down to turn pages. For one flick =
+  exactly one page, set the viewer to fit a whole page (Edge/Chrome PDF
+  viewer: `Ctrl + \`). Or scroll with two fingers.
 - **PowerPoint slideshow:** palm swipes change slides. A pinch-click also
   advances, like a mouse click.
 
@@ -119,6 +129,7 @@ Every threshold is in `config.py`. Common fixes:
 | Clicks missed / too many | adjust `PINCH_ON` (lower = harder to click) |
 | Scroll too fast / wrong way | `SCROLL_GAIN`, `SCROLL_NATURAL` |
 | Swipes not detected | `SWIPE_THRESHOLD = 0.15` |
+| Page flicks too hard / too easy | `SWIPE_V_THRESHOLD` (lower = easier) |
 | Gestures flicker | `STABILITY_WINDOW = 5`, `STABILITY_REQUIRED = 4` |
 | Fingers misread as up/down | adjust `FINGER_EXTENDED_RATIO` (watch the digits under the pose name) |
 | Play/pause triggers by accident | raise `PLAYPAUSE_HOLD_S` |
