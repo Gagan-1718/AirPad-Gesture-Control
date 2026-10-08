@@ -5,6 +5,11 @@
 ### Added
 - Flick the index finger up / down to turn pages and slides (Page Down / Page Up).
   The cursor snaps back so the flick doesn't move it.
+- Hold three fingers still for 1.5 s to pause AirPad, and again to resume
+  (or press `p`). A red PAUSED banner shows while paused.
+
+### Changed
+- Bigger preview window (80% of the camera image instead of 50%).
 
 ## 1.0.0
 
