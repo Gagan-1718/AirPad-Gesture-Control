@@ -56,6 +56,17 @@ movements still move the cursor as usual.
 | 👍 Thumbs up, hold | Volume up (repeats while held) |
 | 👎 Thumbs down, hold | Volume down (repeats while held) |
 
+### Pause / resume
+
+| Gesture | Action |
+|---|---|
+| 🤟 Hold three fingers (index + middle + ring) **still** for 1.5 s | Pause AirPad: nothing moves, clicks or presses keys |
+| 🤟 Hold three fingers still for 1.5 s again | Resume |
+
+A yellow bar fills while you hold, and a red **PAUSED** banner shows while
+paused. Swiping with three fingers still switches apps; only a still hold
+pauses. Pressing **p** in the AirPad window does the same.
+
 ### Tips
 
 - Keep your palm facing the camera, 40 cm to 1.5 m away.
@@ -113,8 +124,9 @@ python main.py --camera 1   # use another webcam
 
 The hand model (~7.8 MB) downloads to `models/` on first run.
 
-A small preview window stays on top of other windows. With it focused, **v**
-switches to a tiny status bar and back, and **q** or **Esc** quits. Emergency
+A small preview window stays on top of other windows. With it focused, **p**
+pauses / resumes, **v** switches to a tiny status bar and back, and **q** or
+**Esc** quits. Emergency
 stop: slam the real mouse into a screen corner.
 
 ## Tuning
@@ -133,6 +145,8 @@ Every threshold is in `config.py`. Common fixes:
 | Gestures flicker | `STABILITY_WINDOW = 5`, `STABILITY_REQUIRED = 4` |
 | Fingers misread as up/down | adjust `FINGER_EXTENDED_RATIO` (watch the digits under the pose name) |
 | Play/pause triggers by accident | raise `PLAYPAUSE_HOLD_S` |
+| Pausing takes too long / happens by accident | `PAUSE_HOLD_S` |
+| Preview window too big / small | `PREVIEW_SCALE` |
 
 ## Tests
 
