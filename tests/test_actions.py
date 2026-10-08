@@ -125,3 +125,19 @@ def test_swipe_with_no_binding_for_its_direction_is_ignored():
     ctrl = GestureController(out)
     assert ctrl.update(1.0, "two", False, ("swipe_up", "two")) is None
     assert out.log == []
+
+
+def test_index_flick_up_and_down_turns_pages():
+    out = FakeOutput()
+    ctrl = GestureController(out)
+    assert ctrl.update(1.0, "point", False, ("swipe_up", "point")) == "Next page"
+    assert ctrl.update(3.0, "point", False, ("swipe_down", "point")) == "Previous page"
+    assert out.keys() == ["pagedown", "pageup"]
+
+
+def test_hand_coming_back_after_a_page_flick_is_ignored():
+    out = FakeOutput()
+    ctrl = GestureController(out)
+    ctrl.update(1.0, "point", False, ("swipe_up", "point"))
+    ctrl.update(1.8, "point", False, ("swipe_down", "point"))
+    assert out.keys() == ["pagedown"]

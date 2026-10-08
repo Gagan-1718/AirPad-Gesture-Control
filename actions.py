@@ -4,6 +4,7 @@ Cursor, clicks and scrolling live in mouse.py. This file handles:
 - Swipes, whose meaning depends on the hand shape:
     open palm   -> Right / Left arrow   (next / previous slide, page, photo)
     two fingers -> Alt+Right / Alt+Left (browser forward / back)
+    index flick up / down -> Page Down / Page Up (next / previous page or slide)
     three       -> Alt+Tab              (switch to the last app)
 - Open palm held still -> play / pause.
 - Thumbs up / down held -> volume up / down (repeats while held).
@@ -103,6 +104,8 @@ def hotkey(*keys):
 SWIPE_BINDINGS = {
     ("palm", "swipe_right"): Binding(press("right"), "Next"),
     ("palm", "swipe_left"): Binding(press("left"), "Previous"),
+    ("point", "swipe_up"): Binding(press("pagedown"), "Next page"),
+    ("point", "swipe_down"): Binding(press("pageup"), "Previous page"),
     ("two", "swipe_right"): Binding(hotkey("alt", "right"), "Forward"),
     ("two", "swipe_left"): Binding(hotkey("alt", "left"), "Back"),
     ("three", "swipe_right"): Binding(hotkey("alt", "tab"), "Switch app"),
