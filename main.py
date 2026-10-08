@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 
 import config
-from actions import DryRunOutput, GestureController, Output
+from actions import DryRunOutput, GestureController, Output, PauseToggle
 from camera import Camera
 from gestures import DISPLAY_NAMES, MotionTracker, classify, fingers_up, hand_size
 from mouse import MouseController
@@ -67,6 +67,7 @@ def run(args):
     tracker = HandTracker()
     controller = GestureController(output)
     mouse = MouseController(output)
+    pause = PauseToggle(config.START_PAUSED)
     stability = StabilityFilter(config.STABILITY_WINDOW, config.STABILITY_REQUIRED)
     motion = MotionTracker()
 
@@ -107,13 +108,20 @@ def run(args):
                     raw = classify(hand, fingers)
                     pose = stability.update(raw)
                     motion.update(now, *hand.norm(0), raw)
-                    swipe = motion.detect_swipe(now)
-                    if swipe:
+                    still = motion.is_still(now)
+                    fired = pause.update(now, pose, still)
+                    if fired:                       # just paused or resumed: start clean
                         motion.clear_history()
-                    fired = controller.update(now, pose, motion.is_still(now), swipe)
-                    fired = mouse.update(now, hand, pose, fingers) or fired
-                    if swipe and swipe[1] == "point" and swipe[0] in ("swipe_up", "swipe_down"):
-                        mouse.rewind(now - config.SWIPE_WINDOW_S)   # a page flick, not a cursor move
+                        controller.hand_lost()
+                        mouse.release()
+                    elif not pause.paused:
+                        swipe = motion.detect_swipe(now)
+                        if swipe:
+                            motion.clear_history()
+                        fired = controller.update(now, pose, still, swipe)
+                        fired = mouse.update(now, hand, pose, fingers) or fired
+                        if swipe and swipe[1] == "point" and swipe[0] in ("swipe_up", "swipe_down"):
+                            mouse.rewind(now - config.SWIPE_WINDOW_S)   # a page flick, not a cursor move
                     gesture_name = DISPLAY_NAMES.get(pose, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
@@ -125,6 +133,7 @@ def run(args):
                     motion.reset()
                     controller.hand_lost()
                     mouse.release()
+                    pause.hand_lost()
 
                 fps_count += 1
                 if now - fps_start >= 1.0:
@@ -133,7 +142,8 @@ def run(args):
                 state = {
                     "fps": fps, "idle": idle, "fingers": fingers, "gesture": gesture_name,
                     "action": action if now < action_until else "",
-                    "hold": controller.hold_progress,
+                    "hold": pause.progress or controller.hold_progress,
+                    "paused": pause.paused,
                 }
                 if show_preview:
                     s = config.PREVIEW_SCALE
