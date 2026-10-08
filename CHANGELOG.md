@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Flick the index finger up / down to turn pages and slides (Page Down / Page Up).
+  The cursor snaps back so the flick doesn't move it.
+
 ## 1.0.0
 
 Laptop-style redesign: one always-on mode that works like a touchpad.
