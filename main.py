@@ -112,6 +112,8 @@ def run(args):
                         motion.clear_history()
                     fired = controller.update(now, pose, motion.is_still(now), swipe)
                     fired = mouse.update(now, hand, pose, fingers) or fired
+                    if swipe and swipe[1] == "point" and swipe[0] in ("swipe_up", "swipe_down"):
+                        mouse.rewind(now - config.SWIPE_WINDOW_S)   # a page flick, not a cursor move
                     gesture_name = DISPLAY_NAMES.get(pose, "...")
                     if fired:
                         action, action_until = fired, now + config.ACTION_FLASH_S
