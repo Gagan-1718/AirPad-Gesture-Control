@@ -205,3 +205,50 @@ class GestureController:
         self._cooldowns.trigger("swipe", now, config.SWIPE_COOLDOWN_S)
         self._last_swipe = (direction, now)
         return binding.label
+
+
+PAUSE_POSE = "three"
+
+
+class PauseToggle:
+    """Hold three fingers still to pause AirPad; hold them again to resume.
+
+    While paused nothing is sent to the OS. The pose latches after a toggle,
+    so one long hold doesn't pause and then resume again.
+    """
+
+    def __init__(self, paused=False):
+        self.paused = paused
+        self.progress = 0.0           # 0..1 for the progress bar
+        self._start = None
+        self._latched = False
+
+    def hand_lost(self):
+        self._start = None
+        self._latched = False
+        self.progress = 0.0
+
+    def flip(self):
+        self.paused = not self.paused
+        return "Paused" if self.paused else "Resumed"
+
+    def update(self, now, pose, still):
+        """Feed one frame. Returns "Paused" / "Resumed" when it toggles, else None."""
+        if pose is None:
+            return None                 # pose briefly unclear: keep the hold going
+        if pose != PAUSE_POSE:
+            self._latched = False
+            self._start = None
+            self.progress = 0.0
+            return None
+        if self._latched:
+            return None
+        if self._start is None or not still:
+            self._start = now
+        held = now - self._start
+        self.progress = min(held / config.PAUSE_HOLD_S, 1.0)
+        if held < config.PAUSE_HOLD_S:
+            return None
+        self._latched = True
+        self.progress = 0.0
+        return self.flip()

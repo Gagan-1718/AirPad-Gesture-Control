@@ -81,6 +81,10 @@ VOLUME_HOLD_S = 0.25        # thumbs up / down must be held this long first
 VOLUME_REPEAT_S = 0.2       # then one volume step per this interval
 GESTURE_COOLDOWN_S = 0.8
 
+# --- Pause / resume (hold three fingers still) -------------------------------------
+PAUSE_HOLD_S = 1.5          # hold three fingers still this long to pause or resume
+START_PAUSED = False        # True: start paused until you hold three fingers
+
 # --- Swipes ---------------------------------------------------------------------
 SWIPE_WINDOW_S = 0.4
 SWIPE_THRESHOLD = 0.20      # frame-width fraction the hand must travel

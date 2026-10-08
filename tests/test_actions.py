@@ -1,4 +1,4 @@
-from actions import GestureController
+from actions import GestureController, PauseToggle
 from helpers import FakeOutput
 
 
@@ -141,3 +141,40 @@ def test_hand_coming_back_after_a_page_flick_is_ignored():
     ctrl.update(1.0, "point", False, ("swipe_up", "point"))
     ctrl.update(1.8, "point", False, ("swipe_down", "point"))
     assert out.keys() == ["pagedown"]
+
+
+def hold(toggle, frames, dt=1 / 30, t0=0.0):
+    """Feed pose names (still) or (pose, still) tuples at 30 fps; return the toggles."""
+    toggles = []
+    for i, frame in enumerate(frames, start=1):
+        pose, still = frame if isinstance(frame, tuple) else (frame, True)
+        result = toggle.update(t0 + i * dt, pose, still)
+        if result:
+            toggles.append(result)
+    return toggles
+
+
+def test_holding_three_fingers_pauses_and_holding_again_resumes():
+    toggle = PauseToggle()
+    assert hold(toggle, ["three"] * 60) == ["Paused"]
+    assert toggle.paused
+    assert hold(toggle, ["point"] * 5 + ["three"] * 60, t0=3.0) == ["Resumed"]
+    assert not toggle.paused
+
+
+def test_one_long_hold_toggles_only_once():
+    toggle = PauseToggle()
+    assert hold(toggle, ["three"] * 150) == ["Paused"]
+
+
+def test_short_or_moving_three_fingers_do_not_pause():
+    toggle = PauseToggle()
+    assert hold(toggle, ["three"] * 30 + ["point"] * 10) == []
+    assert hold(toggle, [("three", False)] * 90, t0=2.0) == []      # e.g. a three-finger swipe
+    assert not toggle.paused
+
+
+def test_pause_progress_fills_while_holding():
+    toggle = PauseToggle()
+    hold(toggle, ["three"] * 20)
+    assert 0 < toggle.progress < 1
