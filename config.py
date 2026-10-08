@@ -23,7 +23,7 @@ IDLE_AFTER_S = 1.5
 
 # --- Preview window -------------------------------------------------------------
 SHOW_PREVIEW = True         # 'v' toggles between preview and a tiny status panel
-PREVIEW_SCALE = 0.5         # half-size preview is cheaper and stays out of the way
+PREVIEW_SCALE = 0.8         # preview size vs the camera image (1.0 = 640x480)
 PREVIEW_ON_TOP = True
 
 # --- Hand model (MediaPipe Tasks HandLandmarker) -------------------------------
