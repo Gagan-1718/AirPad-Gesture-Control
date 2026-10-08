@@ -23,6 +23,7 @@ GREEN = (80, 220, 100)
 WHITE = (255, 255, 255)
 YELLOW = (0, 220, 255)
 GREY = (160, 160, 160)
+RED = (60, 60, 230)
 
 
 def text(img, msg, org, color=WHITE, scale=0.45, thickness=1):
@@ -49,13 +50,20 @@ def draw_overlay(img, state):
     if state["hold"] > 0:
         cv2.rectangle(img, (8, h - 16), (8 + int((w - 16) * state["hold"]), h - 10), YELLOW, -1)
         cv2.rectangle(img, (8, h - 16), (w - 8, h - 10), WHITE, 1)
+    if state["paused"]:
+        cv2.rectangle(img, (0, 0), (w - 1, h - 1), RED, 4)
+        text(img, "PAUSED", (w // 2 - 55, h // 2), RED, 1.0, 2)
+        text(img, "hold 3 fingers still to resume", (w // 2 - 120, h // 2 + 26), WHITE, 0.5)
 
 
 def status_panel(state):
     """Tiny window shown when the preview is off (keeps key handling alive)."""
     img = np.zeros((44, 240, 3), np.uint8)
     msg = state["action"] or ("idle" if state["idle"] else state["gesture"] or "no hand")
-    text(img, f"AirPad: {msg}", (8, 27), GREEN, 0.5)
+    if state["paused"]:
+        text(img, "AirPad: PAUSED", (8, 27), RED, 0.5)
+    else:
+        text(img, f"AirPad: {msg}", (8, 27), GREEN, 0.5)
     return img
 
 
